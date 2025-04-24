@@ -15,7 +15,11 @@ const User = sequelize.define('USER', {
     allowNull: false
   },
   email: DataTypes.STRING,
-  phone: DataTypes.STRING
+  phone: DataTypes.STRING,
+  image: {
+    type: DataTypes.BLOB('long'), // ou DataTypes.TEXT si tu stockes base64
+    allowNull: true
+  }
 }, {
   timestamps: false
 });
