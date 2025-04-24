@@ -7,7 +7,7 @@ const { Op } = require('sequelize');
 const SECRET = process.env.JWT_SECRET || 'secret_key';
 
 
-exports.register = async ({ firstName, lastName, email, password, phone, role, image, date_birthday, sexe }) => {
+exports.register = async ({ firstName, lastName, email, password, phone, role, image }) => {
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) throw new Error('Email already in use');
 
@@ -23,14 +23,14 @@ exports.register = async ({ firstName, lastName, email, password, phone, role, i
     image // base64 or URL
   });
 
-  // If the role is 'patient', create patient details
-  if (role === 'patient') {
-    await Patient.create({
-      user_id: newUser.user_id,
-      date_birthday,
-      sexe
-    });
-  }
+  // // If the role is 'patient', create patient details
+  // if (role === 'patient') {
+  //   await Patient.create({
+  //     user_id: newUser.user_id,
+  //     date_birthday,
+  //     sexe
+  //   });
+  // }
 
   const token = jwt.sign({ userId: newUser.user_id, role: newUser.role }, SECRET, { expiresIn: '7d' });
 
