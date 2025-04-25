@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
-const authRoutes = require('./src/routes/Auth.route');
 const { sequelize } = require('./src/config/config'); 
+const User = require('./src/model/User.model');
+const authRoutes = require('./src/routes/Auth.route');
+const userRoutes = require('./src/routes/User.route');
 
 
 
@@ -14,8 +16,27 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
-
+app.get('/users/:id/image', async (req, res) => {
+    const userId = req.params.id;
+  
+    try {
+      const user = await User.findByPk(userId);
+  
+      if (!user || !user.image) {
+        return res.status(404).send('Image non trouvée');
+      }
+  
+      // Ici on suppose que c'est une image JPEG (tu peux détecter le type avec un champ séparé si tu veux)
+      res.setHeader('Content-Type', 'image/jpeg');
+      res.send(user.image);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Erreur serveur');
+    }
+  });
+  
 
 sequelize
     .authenticate()
