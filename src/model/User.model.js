@@ -17,7 +17,7 @@ const User = sequelize.define('USER', {
   email: DataTypes.STRING,
   phone: DataTypes.STRING,
   image: {
-    type: DataTypes.BLOB('long'), // ou DataTypes.TEXT si tu stockes base64
+    type: DataTypes.BLOB, // Plain BLOB will be converted to BYTEA in PostgreSQL
     allowNull: true
   }
 }, {
