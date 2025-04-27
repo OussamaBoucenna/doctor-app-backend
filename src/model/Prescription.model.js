@@ -4,6 +4,7 @@ const { sequelize } = require('../config/config');
 const User = require('./User.model');
 const Doctor = require('./Doctor.model');
 const Patient = require('./Patient.model');
+const Medication = require('./Medication.model');
 
 const Prescription = sequelize.define('PRESCRIPTION', {
   prescription_id: {
