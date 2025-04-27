@@ -7,6 +7,7 @@ const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
 const prescriptionRoutes = require('./src/routes/Prescription.route');
 
+const specialtyRoutes = require('./src/routes/Specialty.route');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/doctors', doctorRoutes);
 app.use('api/prescriptions/',prescriptionRoutes);
 
 
+app.use('/api/specialties', specialtyRoutes);
 
 app.get('/users/:id/image', async (req, res) => {
     const userId = req.params.id;
