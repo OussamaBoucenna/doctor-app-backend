@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { Doctor, User } = require('../models');  // Assurez-vous d'importer les modèles correctement
-
+const  Doctor  = require('./../model/Doctor.model');  // Assurez-vous d'importer les modèles correctement
+const User = require('./../model/User.model');  // Assurez-vous d'importer les modèles correctement
 // Route pour récupérer tous les docteurs
 router.get('/all', async (req, res) => {
   try {
