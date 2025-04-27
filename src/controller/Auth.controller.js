@@ -24,6 +24,63 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.registerDoctor = async (req, res) => {
+  try {
+    const {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      role,
+      adresse,
+      clinique_name,
+      location,
+      speciality,
+      facebook_link,
+      instagram_link,
+      tiktok_link,
+      about,
+      patiens,
+      rating,
+      reviewCount,
+      yearsExperience
+    } = req.body;
+
+    const image = req.file ? req.file.buffer : null; // Image en binaire
+
+    console.log('Image:', image); // Debugging
+    console.log('Request Body:', req.body); // Debugging
+
+    const user = await authService.registerDoctor({
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      role,
+      image,
+      adresse,
+      clinique_name,
+      location,
+      speciality,
+      facebook_link,
+      instagram_link,
+      tiktok_link,
+      about,
+      patiens,
+      rating,
+      reviewCount,
+      yearsExperience
+    });
+
+    res.status(201).json(user);
+  } catch (err) {
+    console.error('Error:', err.message); // Debugging
+    res.status(400).json({ error: err.message });
+  }
+};
+
 
 exports.login = async (req, res) => {
   try {

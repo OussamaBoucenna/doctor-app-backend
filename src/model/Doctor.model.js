@@ -8,14 +8,59 @@ const Doctor = sequelize.define('DOCTOR', {
     primaryKey: true,
     autoIncrement: true
   },
-  adresse: DataTypes.STRING,
-  clinique_name: DataTypes.STRING,
-  location: DataTypes.JSON,
-  photo: DataTypes.STRING,
-  speciality: DataTypes.ENUM('general', 'dentist', 'dermatologist'),
-  facebook_link: DataTypes.STRING,
-  instagram_link: DataTypes.STRING,
-  tiktok_link: DataTypes.STRING
+  adresse: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  clinique_name: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  location: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  speciality: {
+    type: DataTypes.ENUM('general', 'dentist', 'dermatologist'),
+    allowNull: false   // important ici
+  },
+  facebook_link: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  instagram_link: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  tiktok_link: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  about: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  patiens: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: true
+  },
+  rating: {
+    type: DataTypes.FLOAT,
+    defaultValue: 0,
+    allowNull: true
+  },
+  reviewCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: true
+  },
+  yearsExperience: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    allowNull: true
+  },
+
 }, {
   timestamps: false
 });
