@@ -46,7 +46,8 @@ class PrescriptionService {
             as: 'Doctor',
             include: [{
               model: User,
-              attributes: ['user_id', 'first_name', 'last_name', 'email']
+              attributes: ['user_id', 'first_name', 'last_name', 'email'],
+              as :'user'
             }]
           },
           { 
@@ -54,7 +55,8 @@ class PrescriptionService {
             as: 'Patient',
             include: [{
               model: User,
-              attributes: ['user_id', 'first_name', 'last_name', 'email']
+              attributes: ['user_id', 'first_name', 'last_name', 'email'],
+              as :'user'
             }]
           }
         ]
@@ -114,22 +116,25 @@ class PrescriptionService {
 
   async createPrescription(prescriptionData) {
     const transaction = await sequelize.transaction();
-
+  // console.log("prescriptionData -->",prescriptionData)
     try {
       // Vérifier si le docteur et le patient existent
       const doctor = await Doctor.findByPk(prescriptionData.doctorId, {
-        include: [{ model: User }]
+        include: [{ model: User, as: 'user' }]
       });
       
       const patient = await Patient.findByPk(prescriptionData.patientId, {
-        include: [{ model: User }]
+        include: [{ model: User, as: 'user' }]
       });
+    // console.log(doctor)
+    // console.log("user -->",doctor.user)
+    console.log("User -->",doctor.User)
 
-      if (!doctor || !doctor.User || doctor.User.role !== 'doctor') {
+      if (!doctor || !doctor.user || doctor.user.role !== 'doctor') {
         throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
       }
 
-      if (!patient || !patient.User || patient.User.role !== 'patient') {
+      if (!patient || !patient.user || patient.user.role !== 'patient') {
         throw new Error('Le patient spécifié n\'existe pas ou n\'est pas un patient');
       }
 
@@ -152,12 +157,17 @@ class PrescriptionService {
         }));
 
         await Medication.bulkCreate(medicationsToCreate, { transaction });
+        // await Medication.bulkCreate(medicationsToCreate);
+
       }
 
+      console.log("prescription -->",prescription.prescription_id)
       await transaction.commit();
 
       // Récupérer la prescription créée avec ses médicaments
-      return await this.getPrescriptionById(prescription.prescription_id);
+      const newPrescription = await this.getPrescriptionById(prescription.prescription_id);
+
+      return  newPrescription;
     } catch (error) {
       await transaction.rollback();
       throw new Error(`Error creating prescription: ${error.message}`);

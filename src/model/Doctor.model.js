@@ -70,8 +70,9 @@ const Doctor = sequelize.define('DOCTOR', {
 });
 
 // Set up the relationships
-Doctor.belongsTo(User, { foreignKey: 'user_id' });
-User.hasOne(Doctor, { foreignKey: 'user_id' });
+Doctor.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasOne(Doctor, { foreignKey: 'user_id', as: 'doctor' });
+
 
 Doctor.belongsTo(Specialty, { foreignKey: 'specialty_id' }); // Associate Doctor with Specialty
 Specialty.hasMany(Doctor, { foreignKey: 'specialty_id' }); // One specialty can have many doctors

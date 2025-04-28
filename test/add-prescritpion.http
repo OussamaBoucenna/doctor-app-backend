@@ -1,0 +1,18 @@
+POST http://localhost:5000/api/prescriptions
+Content-Type: application/json
+
+{
+    "doctorId": 2,
+    "expiryDate": "2025-4-16",
+    "instructions": "yer7em bebek",
+    "medications": [
+        {
+            "dosage": "500mg",
+            "duration": "10",
+            "frequency": "22",
+            "id": "1226424b-3462-4bdf-aae6-3ca2e9e401f0",
+            "name": "Doliprane"
+        }
+    ],
+    "patientId": "3"
+}
