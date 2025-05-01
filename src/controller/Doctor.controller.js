@@ -12,6 +12,7 @@ async function getAllDoctors(req, res) {
 
     // Respond with the doctors' information in JSON format
     res.status(200).json(doctors);
+    console.log('Doctors:', doctors);
   } catch (error) {
     // Log the error for debugging purposes
     console.error('Error fetching doctors:', error);

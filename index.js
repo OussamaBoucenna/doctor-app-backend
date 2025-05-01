@@ -6,6 +6,7 @@ const authRoutes = require('./src/routes/Auth.route');
 const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
 const specialtyRoutes = require('./src/routes/Specialty.route');
+const reviewRoutes = require('./src/routes/Review.routes');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -19,6 +20,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/specialties', specialtyRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 app.get('/users/:id/image', async (req, res) => {
     const userId = req.params.id;
@@ -46,7 +48,7 @@ sequelize
         return sequelize.sync({ force: false  }); 
     })
     .then(() => {
-        app.listen(PORT, () => {
+        app.listen(PORT,'0.0.0.0', () => {
             console.log(`Serveur démarré sur le port ${PORT}`);
         });
     })

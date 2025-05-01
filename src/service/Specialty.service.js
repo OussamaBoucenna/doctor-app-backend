@@ -14,11 +14,19 @@ const createSpecialty = async (name) => {
 const getAllSpecialties = async () => {
   try {
     const specialties = await Specialty.findAll();
-    return specialties;
+
+    // Return only specialty_id and name
+    const formatted = specialties.map((s) => ({
+      specialty_id: s.specialty_id,
+      name: s.name,
+    }));
+
+    return formatted;
   } catch (error) {
     throw new Error('Error fetching specialties: ' + error.message);
   }
 };
+
 
 // Service to get a specialty by ID
 const getSpecialtyById = async (specialtyId) => {
