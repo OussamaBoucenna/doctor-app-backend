@@ -40,7 +40,7 @@ async function getAllDoctors() {
         patientCount: doctor.patiens || 0,
         location: doctor.location || 'Unknown Location',
         about: doctor.about || 'No information available',
-        imageResId: user.image || 'default_image.png', // Use the user's image or a default one
+        imageUrl: user.image || 'default_image.png', // Use the user's image or a default one
         socialLinks: {
           facebook: doctor.facebook_link || '',
           instagram: doctor.instagram_link || '',
@@ -69,24 +69,28 @@ const getDoctorById = async (id) => {
     }
 
     const user = doctor.USER;
+
     const specialties = await Specialty.findAll();
     const specialtyMap = specialties.reduce((acc, specialty) => {
-      acc[specialty.specialty_id] = specialty.name;
+      acc[specialty.specialty_id] = {
+        id: specialty.specialty_id,
+        name: specialty.name
+      };
       return acc;
     }, {});
 
     return {
       id: doctor.doctor_id,
       name: `${user.first_name} ${user.last_name}`,
-      specialty: specialtyMap[doctor.specialty_id] || 'Unknown Specialty',
+      specialty: specialtyMap[doctor.specialty_id] || { id: doctor.specialty_id, name: 'Unknown Specialty' },
       hospital: doctor.clinique_name || 'Unknown Clinic',
       rating: doctor.rating || 0,
       reviewCount: doctor.reviewCount || 0,
       yearsExperience: doctor.yearsExperience || 0,
-      patientCount: doctor.patiens || 0,
-      location: doctor.location || 'Unknown Location',
+      patients: doctor.patiens || 0,
+      hospitalLocation: doctor.location || 'Unknown Location',
       about: doctor.about || 'No information available',
-      imageResId: user.image || 'default_image.png',
+      imageUrl: user.image || 'default_image.png', // <<< correction ici
       socialLinks: {
         facebook: doctor.facebook_link || '',
         instagram: doctor.instagram_link || '',
@@ -98,6 +102,8 @@ const getDoctorById = async (id) => {
     throw new Error(`Unable to fetch doctor with ID ${id}`);
   }
 };
+
+
 
 // Function to update a doctor's details
 const updateDoctor = async (id, doctorData) => {
