@@ -5,6 +5,7 @@ const AppointmentSlot = require('../model/AppointmentSlot.model');
 const DoctorSchedule = require('../model/DoctorSchedule.model'); // Fixed naming convention
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
+const { Op } = require('sequelize');
 
 const createAppointment = async (data) => {
   try {
@@ -47,7 +48,6 @@ const getAllAppointments = async () => {
     throw error;
   }
 };
-
 
 
 const getAppointmentById = async (id) => {
@@ -102,12 +102,25 @@ const getAppointmentsByPatientId = async (userId) => {
       return [];
     }
 
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().split(' ')[0];
+
     // Récupérer tous les rendez-vous liés à ce patient
     const appointments = await Appointment.findAll({
       where: { patient_id: patient.patient_id },
       include: [
         {
           model: AppointmentSlot,
+          where: {
+            [Op.or]: [
+              { working_date: { [Op.gt]: today } },
+              {
+                working_date: today,
+                start_time: { [Op.gt]: currentTime }
+              }
+            ]
+          },
           include: [
             {
               model: DoctorSchedule,
