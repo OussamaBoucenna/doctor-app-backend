@@ -40,7 +40,7 @@ async function getAllDoctors() {
         patientCount: doctor.patiens || 0,
         location: doctor.location || 'Unknown Location',
         about: doctor.about || 'No information available',
-        imageUrl: user.image || 'default_image.png', // Use the user's image or a default one
+        imageUrl: user.image , // Use the user's image or a default one
         socialLinks: {
           facebook: doctor.facebook_link || '',
           instagram: doctor.instagram_link || '',
@@ -90,7 +90,7 @@ const getDoctorById = async (id) => {
       patients: doctor.patiens || 0,
       hospitalLocation: doctor.location || 'Unknown Location',
       about: doctor.about || 'No information available',
-      imageUrl: user.image || 'default_image.png', // <<< correction ici
+      imageUrl: user.image , // <<< correction ici
       socialLinks: {
         facebook: doctor.facebook_link || '',
         instagram: doctor.instagram_link || '',

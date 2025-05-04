@@ -7,6 +7,10 @@ const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
 const specialtyRoutes = require('./src/routes/Specialty.route');
 const reviewRoutes = require('./src/routes/Review.routes');
+const doctorScheduleRoutes = require('./src/routes/DoctorSchedule.routes');
+const appointmentSlotRoutes = require('./src/routes/AppointmentSlot.routes');
+const appointmentRoutes = require('./src/routes/Appointment.routes');
+const qrCodeRoutes = require('./src/routes/qrCodeData.routes');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -21,6 +25,11 @@ app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/specialties', specialtyRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/doctor-schedules', doctorScheduleRoutes);
+app.use('/api/appointment-slots', appointmentSlotRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/qrcode', qrCodeRoutes);
+
 
 app.get('/users/:id/image', async (req, res) => {
     const userId = req.params.id;
