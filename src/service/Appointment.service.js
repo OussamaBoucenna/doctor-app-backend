@@ -53,7 +53,7 @@ const getAllAppointments = async () => {
 const getAppointmentById = async (id) => {
   try {
     const appointment = await Appointment.findOne({
-      where: { appointment_id: "3" },
+      where: { appointment_id: id },
       include: [
         {
           model: AppointmentSlot,
@@ -92,43 +92,54 @@ const getAppointmentsByPatientId = async (userId) => {
   console.log('Fetching appointments for user ID:', userId);
   
   try {
-    // Find the patient associated with the user ID
+    // Trouver le patient correspondant à userId
     const patient = await Patient.findOne({
       where: { user_id: userId },
-      include: [User]
+      include: [User],
     });
 
     if (!patient) {
       return [];
     }
 
-    // Get all appointments for this patient with related data
+    // Récupérer tous les rendez-vous liés à ce patient
     const appointments = await Appointment.findAll({
       where: { patient_id: patient.patient_id },
       include: [
         {
           model: AppointmentSlot,
-          include: [DoctorSchedule]
+          include: [
+            {
+              model: DoctorSchedule,
+              attributes: ['doctor_id', 'working_date', 'start_time']
+            }
+          ],
+          attributes: ['working_date', 'start_time']
         },
         {
           model: Patient,
-          include: {
-            model: User,  
-            attributes: ['first_name', 'last_name', 'email', 'phone']
-          }
-
+          attributes: ['patient_id']
         }
       ]
     });
-
-    // Transform the data to match the expected output format
-    return appointments;
+    console.log('Appointments fetched successfully:', appointments);
+    // Transformer les données pour chaque rendez-vous
+    return appointments.map((appointment) => ({
+      id: appointment.appointment_id.toString(),
+      "APPOINTMENT_SLOT.DOCTOR_SCHEDULE.doctor_id": appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
+      patientId: appointment.patient_id.toString(),
+      "APPOINTMENT_SLOT.working_date": appointment.APPOINTMENT_SLOT?.working_date,
+      "APPOINTMENT_SLOT.start_time": appointment.APPOINTMENT_SLOT?.start_time,
+      status: appointment.status,
+      reason: appointment.reason
+    }));
     
   } catch (error) {
     console.error('Error fetching appointments by patient ID:', error);
     throw error;
   }
 };
+
 
 // /**
 //  * Get all appointments for a specific patient
