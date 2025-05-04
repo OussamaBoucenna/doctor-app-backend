@@ -109,7 +109,6 @@ exports.login = async ({ email, password }) => {
   if (!isValid) throw new Error('Invalid credentials');
 
   const token = jwt.sign({ userId: user.user_id, role: user.role }, SECRET, { expiresIn: '7d' });
-
   return {
     token,
     userId: user.user_id,
