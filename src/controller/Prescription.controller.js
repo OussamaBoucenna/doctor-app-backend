@@ -3,8 +3,7 @@
 // controllers/prescriptionController.js
 const prescriptionService = require('../service/Prescription.service');
 
-class PrescriptionController {
-  async getAllPrescriptions(req, res) {
+  const  getAllPrescriptions =async (req, res) => {
     try {
       const prescriptions = await prescriptionService.getAllPrescriptions();
       return res.status(200).json({
@@ -19,7 +18,7 @@ class PrescriptionController {
     }
   }
 
-  async getPrescriptionById(req, res) {
+  const  getPrescriptionById = async (req, res) => {
     try {
       const prescription = await prescriptionService.getPrescriptionById(req.params.id);
       return res.status(200).json({
@@ -34,7 +33,7 @@ class PrescriptionController {
     }
   }
 
-  async getPrescriptionsByDoctor(req, res) {
+  const  getPrescriptionsByDoctor = async (req, res) => {
     try {
       const prescriptions = await prescriptionService.getPrescriptionsByDoctor(req.params.doctorId);
       return res.status(200).json({
@@ -49,7 +48,7 @@ class PrescriptionController {
     }
   }
 
-  async getPrescriptionsByPatient(req, res) {
+  const  getPrescriptionsByPatient = async (req, res)=> {
     try {
       const prescriptions = await prescriptionService.getPrescriptionsByPatient(req.params.patientId);
       return res.status(200).json({
@@ -64,7 +63,7 @@ class PrescriptionController {
     }
   }
 
-  async createPrescription(req, res) {
+  const createPrescription = async (req, res) => {
     console.log("request recived  --> ",req.body)
     try {
       // Transformer les données du frontend en format attendu par le service
@@ -77,6 +76,8 @@ class PrescriptionController {
       };
 
       const prescription = await prescriptionService.createPrescription(prescriptionData);
+     
+     
       return res.status(201).json({
         success: true,
         message: 'Prescription créée avec succès',
@@ -90,7 +91,7 @@ class PrescriptionController {
     }
   }
 
-  async updatePrescription(req, res) {
+  const  updatePrescription = async (req, res) => {
     try {
       const prescriptionData = {
         patientId: parseInt(req.body.patientId),
@@ -114,7 +115,7 @@ class PrescriptionController {
     }
   }
 
-  async deletePrescription(req, res) {
+  const deletePrescription = async (req, res) => {
     try {
       await prescriptionService.deletePrescription(req.params.id);
       return res.status(200).json({
@@ -128,6 +129,13 @@ class PrescriptionController {
       });
     }
   }
-}
 
-module.exports = new PrescriptionController();
+module.exports = {
+  getAllPrescriptions,
+  getPrescriptionById,
+  getPrescriptionsByDoctor,
+  getPrescriptionsByPatient,
+  createPrescription,
+  updatePrescription,
+  deletePrescription
+};

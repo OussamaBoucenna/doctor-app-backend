@@ -4,10 +4,10 @@ Content-Type: application/json
 {
     "doctorId": 2,
     "expiryDate": "2025-4-16",
-    "instructions": "yer7em bebek",
+    "instructions": "last test ",
     "medications": [
         {
-            "dosage": "500mg",
+            "dosage": "500 73 mg",
             "duration": "10",
             "frequency": "22",
             "id": "1226424b-3462-4bdf-aae6-3ca2e9e401f0",
