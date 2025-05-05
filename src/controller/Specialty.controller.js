@@ -15,7 +15,7 @@ const createSpecialty = async (req, res) => {
 const getAllSpecialties = async (req, res) => {
   try {
     const specialties = await specialtyService.getAllSpecialties();
-    res.status(200).json({ specialties });
+    res.status(200).json(specialties);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
