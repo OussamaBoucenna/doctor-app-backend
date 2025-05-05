@@ -6,9 +6,10 @@ const Medication = require('../model/Medication.model');
 const Doctor = require('../model/Doctor.model');
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
+const Specialty = require('../model/Specialty.model');
+const transformPrescription = require('./../utils/PrescriptionTransformers'); // Assurez-vous que ce chemin est correct
 
-class PrescriptionService {
-  async getAllPrescriptions() {
+  const  getAllPrescriptions= async () =>  {
     try {
       return await Prescription.findAll({
         include: [
@@ -35,44 +36,54 @@ class PrescriptionService {
       throw new Error(`Error fetching prescriptions: ${error.message}`);
     }
   }
-
-  async getPrescriptionById(id) {
+  const getPrescriptionById = async (id) => {
     try {
-      const prescription = await Prescription.findByPk(id, {
+      const prescriptionData = await Prescription.findByPk(id, {
         include: [
           { model: Medication },
           { 
             model: Doctor, 
             as: 'Doctor',
-            include: [{
-              model: User,
-              attributes: ['user_id', 'first_name', 'last_name', 'email'],
-              as :'user'
-            }]
+            include: [
+              {
+                model: User,
+                attributes: ['user_id', 'first_name', 'last_name', 'email'],
+                as: 'user'
+              },
+              {
+                model: Specialty, // Pas besoin de `as`
+                attributes: ['specialty_id', 'name']
+              }
+            ]
           },
           { 
             model: Patient, 
             as: 'Patient',
-            include: [{
-              model: User,
-              attributes: ['user_id', 'first_name', 'last_name', 'email'],
-              as :'user'
-            }]
+            include: [
+              {
+                model: User,
+                attributes: ['user_id', 'first_name', 'last_name', 'email'],
+                as: 'user'
+              }
+            ]
           }
         ]
       });
 
+      const prescription = transformPrescription(prescriptionData);
+  
       if (!prescription) {
         throw new Error('Prescription not found');
       }
-
+  
       return prescription;
     } catch (error) {
       throw new Error(`Error fetching prescription: ${error.message}`);
     }
-  }
+  };
+  
 
-  async getPrescriptionsByDoctor(doctorId) {
+  const  getPrescriptionsByDoctor= async (doctorId)=> {
     try {
       return await Prescription.findAll({
         where: { doctor_id: doctorId },
@@ -93,7 +104,7 @@ class PrescriptionService {
     }
   }
 
-  async getPrescriptionsByPatient(patientId) {
+  const  getPrescriptionsByPatient= async (patientId) => {
     try {
       return await Prescription.findAll({
         where: { patient_id: patientId },
@@ -114,8 +125,8 @@ class PrescriptionService {
     }
   }
 
-  async createPrescription(prescriptionData) {
-    const transaction = await sequelize.transaction();
+  const  createPrescription = async(prescriptionData)=> {
+  //  const transaction = await sequelize.transaction();
   // console.log("prescriptionData -->",prescriptionData)
     try {
       // Vérifier si le docteur et le patient existent
@@ -128,8 +139,7 @@ class PrescriptionService {
       });
     // console.log(doctor)
     // console.log("user -->",doctor.user)
-    console.log("User -->",doctor.User)
-
+  
       if (!doctor || !doctor.user || doctor.user.role !== 'doctor') {
         throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
       }
@@ -139,13 +149,18 @@ class PrescriptionService {
       }
 
       // Créer la prescription
+      // const prescription = await Prescription.create({
+      //   patient_id: prescriptionData.patientId,
+      //   doctor_id: prescriptionData.doctorId,
+      //   instructions: prescriptionData.instructions,
+      //   expiry_date: new Date(prescriptionData.expiryDate)
+      // }, { transaction });
       const prescription = await Prescription.create({
         patient_id: prescriptionData.patientId,
         doctor_id: prescriptionData.doctorId,
         instructions: prescriptionData.instructions,
         expiry_date: new Date(prescriptionData.expiryDate)
-      }, { transaction });
-
+      },  );
       // Créer les médicaments associés
       if (prescriptionData.medications && prescriptionData.medications.length > 0) {
         const medicationsToCreate = prescriptionData.medications.map(med => ({
@@ -156,25 +171,25 @@ class PrescriptionService {
           duration: med.duration
         }));
 
-        await Medication.bulkCreate(medicationsToCreate, { transaction });
-        // await Medication.bulkCreate(medicationsToCreate);
+       // await Medication.bulkCreate(medicationsToCreate, { transaction });
+        await Medication.bulkCreate(medicationsToCreate);
 
       }
 
       console.log("prescription -->",prescription.prescription_id)
-      await transaction.commit();
+      // await transaction.commit();
 
       // Récupérer la prescription créée avec ses médicaments
-      const newPrescription = await this.getPrescriptionById(prescription.prescription_id);
+      const newPrescription = await getPrescriptionById(prescription.prescription_id);
 
       return  newPrescription;
     } catch (error) {
-      await transaction.rollback();
+      // await transaction.rollback();
       throw new Error(`Error creating prescription: ${error.message}`);
     }
   }
 
-  async updatePrescription(id, prescriptionData) {
+  const  updatePrescription = async (id, prescriptionData) => {
     const transaction = await sequelize.transaction();
 
     try {
@@ -238,7 +253,7 @@ class PrescriptionService {
     }
   }
 
-  async deletePrescription(id) {
+  const deletePrescription = async (id)=> {
     const transaction = await sequelize.transaction();
 
     try {
@@ -264,6 +279,6 @@ class PrescriptionService {
       throw new Error(`Error deleting prescription: ${error.message}`);
     }
   }
-}
 
-module.exports = new PrescriptionService();
+
+module.exports = {getAllPrescriptions,getPrescriptionById,getPrescriptionsByDoctor,getPrescriptionsByPatient,createPrescription,updatePrescription,deletePrescription};
