@@ -7,7 +7,7 @@ const authMiddleware = require('../middlewares/Auth');
 router.post('/', controller.create);
 router.get('/', controller.getAll);
 router.get('/patient/',authMiddleware ,controller.getAppointmentsByPatientId);
-
+router.get('/first-upcoming', authMiddleware, controller.getFirstUpcomingAppointmentByPatientId);
 router.get('/:id', controller.getAppointment);
 router.put('/:id', controller.update);
 router.delete('/:id', controller.remove);

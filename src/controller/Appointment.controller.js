@@ -1,5 +1,5 @@
 // controllers/appointment.controller.js
-const appointmentService = require('../service/Appointment.service');
+const appointmentService = require('../service/Appointment.service'); 
 
 const create = async (req, res) => {
   try {
@@ -10,6 +10,7 @@ const create = async (req, res) => {
   }
 };
 
+
 const getAll = async (req, res) => {
   try {
     const appointments = await appointmentService.getAllAppointments();
@@ -18,6 +19,7 @@ const getAll = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 const getAppointment = async (req, res) => {
   try {
@@ -35,6 +37,7 @@ const getAppointment = async (req, res) => {
   }
 };
 
+
 const getAppointmentsByPatientId = async (req, res) => {
 
   const userId = req.user.userId; 
@@ -48,6 +51,23 @@ const getAppointmentsByPatientId = async (req, res) => {
   }
 };
 
+
+const getFirstUpcomingAppointmentByPatientId = async (req, res) => {
+  const userId = req.user.userId;
+  console.log('User ID:', userId);
+  try {
+    const appointment = await appointmentService.getFirstUpcomingAppointmentByPatientId(userId);
+    if (!appointment) {
+      return res.status(404).json({ message: 'No upcoming appointments found' });
+    }
+    res.status(200).json(appointment);
+  } catch (error) {
+    console.error('Error getting first upcoming appointment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+
 const update = async (req, res) => {
   try {
     const updated = await appointmentService.updateAppointment(req.params.id, req.body);
@@ -57,6 +77,7 @@ const update = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 const remove = async (req, res) => {
   try {
@@ -68,11 +89,18 @@ const remove = async (req, res) => {
   }
 };
 
+
+
+
+
 module.exports = {
   create,
   getAll,
   getAppointmentsByPatientId,
+  getFirstUpcomingAppointmentByPatientId,
   getAppointment,
   update,
-  remove
+  remove,
 };
+
+

@@ -52,7 +52,7 @@ module.exports = {
         reviewerName: review.USER
           ? `${review.USER.first_name} ${review.USER.last_name}`
           : 'Unknown',
-        reviewerImage: review.USER?.image || '',
+        reviewerImage:  null,
         rating: review.rating,
         comment: review.comment
       }));
