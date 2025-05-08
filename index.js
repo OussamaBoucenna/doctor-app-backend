@@ -5,6 +5,8 @@ const User = require('./src/model/User.model');
 const authRoutes = require('./src/routes/Auth.route');
 const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
+const prescriptionRoutes = require('./src/routes/Prescription.route');
+
 const specialtyRoutes = require('./src/routes/Specialty.route');
 const reviewRoutes = require('./src/routes/Review.routes');
 const doctorScheduleRoutes = require('./src/routes/DoctorSchedule.routes');
@@ -23,6 +25,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/prescriptions',prescriptionRoutes);
+
+
 app.use('/api/specialties', specialtyRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/doctor-schedules', doctorScheduleRoutes);
