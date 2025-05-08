@@ -62,22 +62,22 @@ const prescriptionService = require('../service/Prescription.service');
       });
     }
   }
-
   const createPrescription = async (req, res) => {
-    console.log("request recived  --> ",req.body)
+    console.log("request recived  --> ", req.body)
     try {
       // Transformer les données du frontend en format attendu par le service
       const prescriptionData = {
         patientId: parseInt(req.body.patientId),
         doctorId: parseInt(req.body.doctorId),
+        appointmentId: req.body.appointmentId ? parseInt(req.body.appointmentId) : null, // Ajout du champ appointmentId
         instructions: req.body.instructions,
         expiryDate: req.body.expiryDate,
         medications: req.body.medications
       };
-
+      
       const prescription = await prescriptionService.createPrescription(prescriptionData);
-     
-     
+      console.log("prescription created --> ", prescription)
+      
       return res.status(201).json({
         success: true,
         message: 'Prescription créée avec succès',

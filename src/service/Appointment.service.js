@@ -217,7 +217,36 @@ const deleteAppointment = async (id) => {
   return appointment;
 };
 
+const  countAppointmentsForPatientAndDoctor = async (patientId, doctorId) => {
+  try {
+    const count = await Appointment.count({
+      where: {
+        patient_id: patientId
+      },
+      include: [
+        {
+          model: AppointmentSlot,
+          include: [
+            {
+              model: DoctorSchedule,
+              where: {
+                doctor_id: doctorId
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    return count;
+  } catch (error) {
+    console.error("Erreur lors du comptage des rendez-vous :", error);
+    throw error;
+  }
+}
+
 module.exports = {
+  countAppointmentsForPatientAndDoctor,
   createAppointment,
   getAllAppointments,
   getAppointmentById,

@@ -5,6 +5,7 @@ const User = require('./User.model');
 const Doctor = require('./Doctor.model');
 const Patient = require('./Patient.model');
 const Medication = require('./Medication.model');
+const Appointment = require('./Appointment.model');
 
 const Prescription = sequelize.define('PRESCRIPTION', {
   prescription_id: {
@@ -19,6 +20,10 @@ const Prescription = sequelize.define('PRESCRIPTION', {
   doctor_id: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  appointment_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
   },
   instructions: {
     type: DataTypes.TEXT,
@@ -40,11 +45,13 @@ const Prescription = sequelize.define('PRESCRIPTION', {
 // Nous utilisons les IDs des tables Doctor et Patient, pas directement des Users
 Prescription.belongsTo(Doctor, { foreignKey: 'doctor_id', as: 'Doctor' });
 Prescription.belongsTo(Patient, { foreignKey: 'patient_id', as: 'Patient' });
+Prescription.belongsTo(Appointment, { foreignKey: 'appointment_id', as: 'Appointment' });
 Prescription.hasMany(Medication, { foreignKey: 'prescription_id' });
 Medication.belongsTo(Prescription, { foreignKey: 'prescription_id' });
 
 // Relation dans l'autre sens
 Doctor.hasMany(Prescription, { foreignKey: 'doctor_id', as: 'Prescriptions' });
 Patient.hasMany(Prescription, { foreignKey: 'patient_id', as: 'Prescriptions' });
+Appointment.hasOne(Prescription, { foreignKey: 'appointment_id', as: 'Prescriptions' });
 
 module.exports = Prescription;

@@ -4,7 +4,7 @@ Content-Type: application/json
 {
     "doctorId": 2,
     "expiryDate": "2025-4-16",
-    "instructions": "last test ",
+    "instructions": "CHOF IDA REY TEMCHI BEK ",
     "medications": [
         {
             "dosage": "500 73 mg",
@@ -14,5 +14,6 @@ Content-Type: application/json
             "name": "Doliprane"
         }
     ],
-    "patientId": "3"
+    "patientId": "3",
+    "appointmentId":"7"
 }
