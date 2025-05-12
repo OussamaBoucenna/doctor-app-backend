@@ -1,7 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const admin = require("firebase-admin");
+
 const { sequelize } = require('./src/config/config'); 
 const User = require('./src/model/User.model');
+const FCM = require('./src/model/Fcm.model');
 const authRoutes = require('./src/routes/Auth.route');
 const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
@@ -13,6 +16,7 @@ const doctorScheduleRoutes = require('./src/routes/DoctorSchedule.routes');
 const appointmentSlotRoutes = require('./src/routes/AppointmentSlot.routes');
 const appointmentRoutes = require('./src/routes/Appointment.routes');
 const qrCodeRoutes = require('./src/routes/qrCodeData.routes');
+const FcmRoutes = require('./src/routes/Fcm.route');
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -34,6 +38,7 @@ app.use('/api/doctor-schedules', doctorScheduleRoutes);
 app.use('/api/appointment-slots', appointmentSlotRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/qrcode', qrCodeRoutes);
+app.use('/api/fcm',FcmRoutes)
 
 
 app.get('/users/:id/image', async (req, res) => {
@@ -54,10 +59,63 @@ app.get('/users/:id/image', async (req, res) => {
       res.status(500).send('Erreur serveur');
     }
   });
-  
 
-sequelize
-    .authenticate()
+
+
+
+  // Initialisation Firebase Admin
+const serviceAccount = require("./serviceFCM.json");
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+
+// Route pour envoyer une notification à un utilisateur
+app.post("/api/notify-user", async (req, res) => {
+  try {
+    const { userId, title, body } = req.body;
+    
+    // Vérifier si tous les champs requis sont présents
+    if (!userId || !title || !body) {
+      return res.status(400).json({ error: "Données manquantes (userId, title, body requis)" });
+    }
+    
+    // Rechercher le token FCM de l'utilisateur dans la base de données
+    const fcmRecord = await FCM.findOne({ where: { user_id: userId } });
+    
+    // Vérifier si un token existe pour cet utilisateur
+    if (!fcmRecord || !fcmRecord.token) {
+      return res.status(404).json({ error: "Token FCM non trouvé pour cet utilisateur" });
+    }
+    
+    // Préparer le message de notification
+    const message = {
+      notification: { 
+        title, 
+        body 
+      },
+      token: fcmRecord.token,
+    };
+    
+    // Envoyer la notification via Firebase
+    const response = await admin.messaging().send(message);
+    console.log("Notification envoyée avec succès:", response);
+    
+    return res.status(200).json({ 
+      message: "Notification envoyée avec succès", 
+      response: response 
+    });
+    
+  } catch (err) {
+    console.error("Erreur lors de l'envoi de la notification:", err);
+    return res.status(500).json({ 
+      error: "Erreur lors de l'envoi de la notification", 
+      details: err.message 
+    });
+  }
+});
+
+sequelize.authenticate()
     .then(() => {
         return sequelize.sync({ force: false  }); 
     })

@@ -34,7 +34,8 @@ const Review = sequelize.define('REVIEW', {
     allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: false,
+
 });
 
 // Associations

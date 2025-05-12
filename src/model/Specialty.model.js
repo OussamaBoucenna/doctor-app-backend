@@ -11,6 +11,7 @@ const Specialty = sequelize.define('SPECIALTY', {
   }, {
     timestamps: false,
     tableName: 'SPECIALTY',  // Explicitly specify the table name
+
   });
   
   module.exports = Specialty;

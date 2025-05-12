@@ -30,7 +30,8 @@ const Medication = sequelize.define('MEDICATION', {
     allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: false,
+
 });
 
 

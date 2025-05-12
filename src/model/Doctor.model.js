@@ -66,7 +66,8 @@ const Doctor = sequelize.define('DOCTOR', {
     allowNull: true
   }
 }, {
-  timestamps: false
+  timestamps: false,
+
 });
 
 // Set up the relationships

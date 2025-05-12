@@ -11,7 +11,8 @@ const Patient = sequelize.define('PATIENT', {
   date_birthday: DataTypes.DATE,
   sexe: DataTypes.ENUM('male', 'female')
 }, {
-  timestamps: false
+  timestamps: false,
+
 });
 
 Patient.belongsTo(User, { foreignKey: 'user_id' });

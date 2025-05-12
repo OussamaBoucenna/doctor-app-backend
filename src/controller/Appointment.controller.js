@@ -178,7 +178,7 @@ const getNextAppointment = async (req, res) => {
       });
     }
     const count = await appointmentService.countAppointmentsForPatientAndDoctor(nextAppointment.patient_id, doctorId);
-    console.log('Nombre de visites pour le patient et le médecin:', nextAppointment.PATIENT);
+   // console.log(':', nextAppointment.PATIENT);
     return res.status(200).json({
       success: true,
       message: 'Prochain rendez-vous récupéré avec succès',
@@ -202,6 +202,79 @@ const getNextAppointment = async (req, res) => {
   }
 };
 
+const getTodaysAppointments = async (req, res) => {
+  try {
+    const doctorId = req.doctorId;
+
+    if (!doctorId) {
+      return res.status(400).json({ success: false, message: 'L\'identifiant du médecin est requis' });
+    }
+
+    const today = new Date();
+    const todayDate = today.toISOString().split('T')[0]; // format: 'YYYY-MM-DD'
+
+    const todaysAppointments = await Appointment.findAll({
+      include: [
+        {
+          model: AppointmentSlot,
+          where: {
+            working_date: todayDate
+          },
+          include: [
+            {
+              model: DoctorSchedule,
+              where: { doctor_id: doctorId }
+            }
+          ]
+        },
+        {
+          model: Patient,
+          include: [
+            {
+              model: User,
+              attributes: ['first_name', 'last_name', 'email', 'phone']
+            }
+          ]
+        }
+      ],
+      where: {
+        status: {
+          [Op.in]: ['PENDING', 'CONFIRMED']
+        }
+      },
+      order: [
+        [AppointmentSlot, 'start_time', 'ASC']
+      ]
+    });
+
+    if (!todaysAppointments || todaysAppointments.length === 0) {
+      return res.status(404).json({ success: false, message: 'Aucun rendez-vous pour aujourd\'hui' });
+    }
+
+    const formatted = await Promise.all(todaysAppointments.map(async (appointment) => {
+      const count = await appointmentService.countAppointmentsForPatientAndDoctor(appointment.patient_id, doctorId);
+      return {
+        appointment_id: appointment.appointment_id,
+        patient_id: appointment.patient_id,
+        status: appointment.status,
+        fullname: `${appointment.PATIENT.USER.first_name} ${appointment.PATIENT.USER.last_name}`,
+        start_time: appointment.APPOINTMENT_SLOT.start_time,
+        reason: appointment.reason,
+        numberOfVisit: count
+      };
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: 'Rendez-vous du jour récupérés avec succès',
+      appointments: formatted
+    });
+
+  } catch (error) {
+    console.error('Erreur lors de la récupération des rendez-vous du jour:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  }
+};
 
 
 
@@ -209,6 +282,7 @@ const getNextAppointment = async (req, res) => {
 
 
 module.exports = {
+  getTodaysAppointments,
   getNextAppointment,
   create,
   getAll,

@@ -83,6 +83,8 @@ exports.registerDoctor = async (req, res) => {
 
 
 exports.login = async (req, res) => {
+  console.log('Login Request is comming'); // Debugging
+  console.log('Login Request Body:', req.body); // Debugging
   try {
     const authData = await authService.login(req.body);
     res.status(200).json(authData);

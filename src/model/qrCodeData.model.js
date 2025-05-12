@@ -16,7 +16,8 @@ const QRCodeData = sequelize.define('QRCodeData', {
     allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: false,
+
 });
 
 module.exports = QRCodeData;

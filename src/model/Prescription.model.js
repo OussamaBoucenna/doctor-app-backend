@@ -33,7 +33,8 @@ const Prescription = sequelize.define('PRESCRIPTION', {
     allowNull: false
   }
 }, {
-  timestamps: false
+  timestamps: false,
+
 });
 
 // Définir les relations pour Prescription

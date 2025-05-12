@@ -262,6 +262,8 @@ const  countAppointmentsForPatientAndDoctor = async (patientId, doctorId) => {
 
 module.exports = {
   countAppointmentsForPatientAndDoctor,
+
+  
   createAppointment,
   getAllAppointments,
   getAppointmentById,
