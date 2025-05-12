@@ -2,7 +2,7 @@ const authService = require('./../service/Auth.service');
 
 exports.register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, phone, role } = req.body;
+    const { firstName, lastName, email, password, phone, role ,date_birthday , sexe} = req.body;
     const image = req.file ? req.file.buffer : null; // Image en binaire
 
     console.log('Image:', image); // Debugging
@@ -14,7 +14,9 @@ exports.register = async (req, res) => {
       password,
       phone,
       role,
-      image
+      image,
+      date_birthday,
+      sexe
     });
 
     res.status(201).json(user);

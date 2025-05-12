@@ -8,7 +8,7 @@ const Doctor = require('../model/Doctor.model');
 const SECRET = process.env.JWT_SECRET || 'secret_key';
 
 
-exports.register = async ({ firstName, lastName, email, password, phone, role, image }) => {
+exports.register = async ({ firstName, lastName, email, password, phone, role, image ,date_birthday,sexe}) => {
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) throw new Error('Email already in use');
 
@@ -24,14 +24,21 @@ exports.register = async ({ firstName, lastName, email, password, phone, role, i
     image // base64 or URL
   });
 
+  // Exemple de string au format 'dd/mm/yyyy'
+
+
+// Conversion vers un objet Date (format ISO ou natif JS)
+const [day, month, year] = date_birthday.split('/');
+const dateObj = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+
   // If the role is 'patient', create patient details
-  // if (role === 'patient') {
-  //   await Patient.create({
-  //     user_id: newUser.user_id,
-  //     date_birthday,
-  //     sexe
-  //   });
-  // }
+  if (role === 'patient') {
+    await Patient.create({
+      user_id: newUser.user_id,
+      date_birthday: dateObj, // Date au format ISO
+      sexe
+    });
+  }
 
   const token = jwt.sign({ userId: newUser.user_id, role: newUser.role }, SECRET, { expiresIn: '7d' });
 
