@@ -48,5 +48,8 @@ router.put('/:id', DoctorController.updateDoctor);
 
 // Delete doctor
 router.delete('/:id', DoctorController.deleteDoctor);
+//Get appointment by date
+router.get('/:id/appointments/:date', DoctorController.getAppointmentsByDate);
+
 
 module.exports = router;

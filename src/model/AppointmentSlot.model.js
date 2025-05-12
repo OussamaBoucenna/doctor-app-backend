@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/config');
-const DoctorSchedule = require('../model/DoctorSchedule.model');
+const DoctorSchedule = require('../model/doctorSchedule.model');
 
 const AppointmentSlot = sequelize.define('APPOINTMENT_SLOTS', {
   slot_id: {
