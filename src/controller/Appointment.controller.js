@@ -8,8 +8,9 @@ const User = require('../model/User.model');
 const { Op } = require('sequelize');
 
 const create = async (req, res) => {
+  const userId = req.user.userId;
   try {
-    const appointment = await appointmentService.createAppointment(req.body);
+    const appointment = await appointmentService.createAppointment(req.body,userId);
     res.status(201).json(appointment);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -40,6 +41,22 @@ const getAppointment = async (req, res) => {
   } catch (error) {
     console.error('Error in getAppointment:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+const getAppointmentDetails = async (req, res) => {
+  const { appointmentId } = req.params; // Extract appointmentId from route params
+
+  try {
+    const appointmentDetails = await appointmentService.getAppointmentDetailsById(appointmentId);
+    if (!appointmentDetails) {
+      return res.status(404).json({ message: 'Appointment not found' });
+    }
+    res.status(200).json(appointmentDetails);
+  } catch (error) {
+    // Handle errors, return an error message
+    console.error(error);
+    res.status(500).json({ error: error.message || 'Something went wrong' });
   }
 };
 
@@ -92,6 +109,27 @@ const remove = async (req, res) => {
     res.status(200).json({ message: 'Deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+
+const cancelAppointment = async (req, res) => {
+  const { appointment_id } = req.params;
+
+  try {
+    const formattedAppointment = await appointmentService.cancelAppointment(appointment_id);
+
+    return res.status(200).json(formattedAppointment);
+
+  } catch (error) {
+    if (error.message === 'NOT_FOUND') {
+      return res.status(404).json({ message: 'Appointment not found.' });
+    }
+    if (error.message === 'ALREADY_CANCELLED') {
+      return res.status(400).json({ message: 'Appointment already cancelled.' });
+    }
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error.' });
   }
 };
 
@@ -217,6 +255,8 @@ module.exports = {
   getAppointment,
   update,
   remove,
+  getAppointmentDetails,
+  cancelAppointment
 };
 
 
