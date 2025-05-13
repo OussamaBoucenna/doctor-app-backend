@@ -47,7 +47,7 @@ const registerToken  = async (req, res) => {
 
 const logout = async (req, res) => {
     const { userId } = req.user;
-
+     console.log("LogOut methode here !!!:", userId);
     try {
         // Rechercher le token FCM de l'utilisateur dans la base de données
         const fcmRecord = await FCM.findOne({ where: { user_id: userId } });

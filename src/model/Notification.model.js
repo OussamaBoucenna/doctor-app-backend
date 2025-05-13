@@ -12,8 +12,7 @@ const Notification = sequelize.define('NOTIFICATION', {
   message: DataTypes.STRING,
   is_read: DataTypes.BOOLEAN
 }, {
-  timestamps: true,
-
+  timestamps: true
 });
 
 Notification.belongsTo(User, { foreignKey: 'user_id' });

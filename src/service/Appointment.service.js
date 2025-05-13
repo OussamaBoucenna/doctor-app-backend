@@ -7,16 +7,59 @@ const Appointment = require('../model/Appointment.model');
 const Doctor = require('../model/Doctor.model');
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
+const Specialty = require('../model/Specialty.model');
+const calculateAge = require('../utils/calculateAge'); // Assuming you have a utility function to calculate age
 
-const createAppointment = async (data) => {
+const createAppointment = async (data, userId) => {
+  const t = await Appointment.sequelize.transaction();
+
   try {
-    const appointment = await Appointment.create(data);
-    return appointment;
+    // Step 1: Find the patient by userId
+    const patient = await Patient.findOne({
+      where: { user_id: userId },
+    });
+
+    if (!patient) {
+      return {
+        success: false,
+        message: 'Patient not found for the given userId.',
+        appointment: null,
+      };
+    }
+
+    // Step 2: Add patient_id to data
+    const appointmentData = {
+      ...data,
+      patient_id: patient.patient_id,
+    };
+
+    // Step 3: Create the appointment
+    const appointment = await Appointment.create(appointmentData, { transaction: t });
+
+    // Step 4: Mark the slot as booked
+    await AppointmentSlot.update(
+      { is_book: true },
+      { where: { slot_id: data.slot_id }, transaction: t }
+    );
+
+    await t.commit();
+
+    return {
+      success: true,
+      message: 'Appointment booked successfully.',
+      appointment,
+    };
   } catch (error) {
+    await t.rollback();
     console.error('Error creating appointment:', error);
-    throw error;
+    return {
+      success: false,
+      message: error.message || 'Unknown error occurred while booking appointment.',
+      appointment: null,
+    };
   }
 };
+
 
 const getAllAppointments = async () => {
   try {
@@ -88,6 +131,95 @@ const getAppointmentById = async (id) => {
     throw error;
   }
 };
+
+const getAppointmentDetailsById = async (appointmentId) => {
+  try {
+    const appointment = await Appointment.findOne({
+      where: { appointment_id: appointmentId },
+      include: [
+        {
+          model: AppointmentSlot,
+          include: [
+            {
+              model: DoctorSchedule,
+              include: [
+                {
+                  model: Doctor,
+                  include: [
+                    {
+                      model:  Specialty, // Join with Specialty for specialty details
+                      attributes: ['specialty_id', 'name']
+                    },
+                    {
+                      model: User, // Join with User for doctor details (name, imageUrl)
+                      attributes: ['first_name', 'last_name', 'image']
+                    }
+                  ],
+                  attributes: ['doctor_id', 'clinique_name', 'rating', 'reviewCount']
+                }
+              ]
+            }
+          ]
+        },
+        {
+          model: Patient,
+          include: [
+            {
+              model: User, // Join with User for patient full_name
+              attributes: ['first_name','last_name']
+            }
+          ],
+          attributes: ['patient_id', 'date_birthday','sexe']
+        }
+      ]
+    });
+
+    if (!appointment) {
+      throw new Error('Appointment not found');
+    }
+
+    const slot = appointment.APPOINTMENT_SLOT;
+    const schedule = slot?.DOCTOR_SCHEDULE;
+    const doctor = schedule?.DOCTOR;
+    const specialty = doctor?.SPECIALTY;
+    const doctorUser = doctor?.USER; // Doctor's user data (name, imageUrl)
+    const patient = appointment.PATIENT;
+    const patientUser = patient?.USER; // Patient's user data (full_name, gender, etc.)
+
+    return {
+      doctor: {
+        id: doctor?.doctor_id?.toString(),
+        name: `${doctorUser?.first_name} ${doctorUser?.last_name}`,
+        specialty: {
+          id: specialty?.specialty_id?.toString(),
+          name: specialty?.name
+        },
+        hospital: doctor?.clinique_name,
+        rating: parseFloat(doctor?.rating || 0),
+        reviewCount: parseInt(doctor?.reviewCount || 0),
+        imageResId: doctorUser?.image || null
+      },
+      appointment: {
+        id: appointment.appointment_id.toString(),
+        patientId: patient?.patient_id?.toString(),
+        doctorId: doctor?.doctor_id?.toString(),
+        date: slot?.working_date,
+        time: slot?.start_time,
+        status: appointment.status,
+        reason: appointment.reason
+      },
+      patient: {
+        id: patient?.patient_id?.toString(),
+        fullName: `${patientUser?.first_name} ${patientUser?.last_name}`,
+        gender: patientUser?.sexe,
+        age: calculateAge(patientUser?.birth_date),
+        problemDescription: appointment.reason
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+}
 
 const getAppointmentsByPatientId = async (userId) => {
   console.log('Fetching appointments for user ID:', userId);
@@ -226,6 +358,47 @@ const deleteAppointment = async (id) => {
   return appointment;
 };
 
+const cancelAppointment = async (appointmentId) => {
+  const appointment = await Appointment.findByPk(appointmentId, {
+    include: {
+      model: AppointmentSlot,
+      as: 'APPOINTMENT_SLOT',
+      include: {
+        association: 'DOCTOR_SCHEDULE', // assure-toi que cette association est bien définie dans le modèle
+      }
+    }
+  });
+
+  if (!appointment) throw new Error('NOT_FOUND');
+  if (appointment.status === 'CANCELLED') throw new Error('ALREADY_CANCELLED');
+
+  appointment.status = 'CANCELLED';
+  appointment.is_book = false;
+  await appointment.save();
+
+  await AppointmentSlot.update(
+    { is_book: false },
+    { where: { slot_id: appointment.slot_id } }
+  );
+
+  // Formaté comme demandé
+  return {
+    success: true,
+    message: "Appointment cancelled and slot released.",
+    appointment: {
+      id: appointment.appointment_id.toString(),
+      doctorId: appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
+      patientId: appointment.patient_id.toString(),
+      workingDate: appointment.APPOINTMENT_SLOT?.working_date,
+      startTime: appointment.APPOINTMENT_SLOT?.start_time,
+      status: appointment.status,
+      reason: appointment.reason
+    }
+  };
+};
+
+
+
 
 
 
@@ -271,4 +444,7 @@ module.exports = {
   getFirstUpcomingAppointmentByPatientId,
   updateAppointment,
   deleteAppointment,
+  getAppointmentDetailsById,
+  cancelAppointment
+
 };

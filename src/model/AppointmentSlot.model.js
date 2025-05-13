@@ -33,8 +33,7 @@ const AppointmentSlot = sequelize.define('APPOINTMENT_SLOTS', {
     defaultValue: false
   }
 }, {
-  timestamps: false,
-
+  timestamps: false
 });
 
 // Associations

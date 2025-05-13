@@ -44,8 +44,7 @@ const Appointment = sequelize.define('APPOINTEMENTS', {
     defaultValue: false
   }
 }, {
-  timestamps: false,
-
+  timestamps: false
 });
 
 // Associations

@@ -16,7 +16,8 @@ exports.register = async (req, res) => {
       role,
       image,
       date_birthday,
-      sexe
+      sexe,
+      image
     });
 
     res.status(201).json(user);

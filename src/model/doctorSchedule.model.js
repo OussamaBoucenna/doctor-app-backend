@@ -33,8 +33,7 @@ const DoctorSchedule = sequelize.define('DOCTOR_SCHEDULES', {
     allowNull: false
   }
 }, {
-  timestamps: false,
-
+  timestamps: false
 });
 
 // Associations
