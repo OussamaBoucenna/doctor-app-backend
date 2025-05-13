@@ -2,7 +2,7 @@
 // services/appointment.service.js
 const Appointment = require('../model/Appointment.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
-const DoctorSchedule = require('../model/DoctorSchedule.model'); // Fixed naming convention
+const DoctorSchedule = require('../model/doctorSchedule.model'); // Fixed naming convention
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
 const { Op } = require('sequelize');
