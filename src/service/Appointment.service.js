@@ -1,12 +1,15 @@
 // services/appointment.service.js
 // services/appointment.service.js
 const { Op } = require('sequelize');
+const moment = require('moment');
+const QRCode = require('qrcode');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
 const DoctorSchedule = require('../model/DoctorSchedule.model');
 const Appointment = require('../model/Appointment.model');
 const Doctor = require('../model/Doctor.model');
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
+const QRCodeData = require('../model/qrCodeData.model');
 const Specialty = require('../model/Specialty.model');
 const calculateAge = require('../utils/calculateAge'); // Assuming you have a utility function to calculate age
 
@@ -42,13 +45,40 @@ const createAppointment = async (data, userId) => {
       { where: { slot_id: data.slot_id }, transaction: t }
     );
 
+    // Step 5: Generate QR Code data
+    const timestamp = moment().unix();
+    const content = `Appointment for patient ${patient.patient_id} at slot ${data.slot_id}`;
+
+    const qrPayload = {
+      appointmentId: appointment.appointment_id.toString(),
+      content,
+      timestamp
+    };
+
+    const qrCodeImage = await QRCode.toDataURL(JSON.stringify(qrPayload));
+
+    // Step 6: Update appointment with QR data
+    appointment.qr_data = {
+      ...qrPayload,
+      image: qrCodeImage
+    };
+    await appointment.save({ transaction: t });
+
+    // Step 7: Optionally store QRCodeData in separate table
+    await QRCodeData.create({
+      id: appointment.appointment_id.toString(),
+      content,
+      timestamp
+    }, { transaction: t });
+
     await t.commit();
 
     return {
       success: true,
-      message: 'Appointment booked successfully.',
+      message: 'Appointment booked and QR code generated successfully.',
       appointment,
     };
+
   } catch (error) {
     await t.rollback();
     console.error('Error creating appointment:', error);
@@ -118,11 +148,11 @@ const getAppointmentById = async (id) => {
 
     if (!appointment) return null;
     return {
-      id: appointment.appointment_id.toString(),
-      doctorId: appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
+      appointment_id: appointment.appointment_id.toString(),
+      "APPOINTMENT_SLOT.DOCTOR_SCHEDULE.doctor_id": appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
       patientId: appointment.patient_id.toString(),
-      date: appointment.APPOINTMENT_SLOT?.working_date,
-      time: appointment.APPOINTMENT_SLOT?.start_time,
+      "APPOINTMENT_SLOT.working_date": appointment.APPOINTMENT_SLOT?.working_date,
+      "APPOINTMENT_SLOT.start_time": appointment.APPOINTMENT_SLOT?.start_time,
       status: appointment.status,
       reason: appointment.reason
     };
@@ -267,7 +297,7 @@ const getAppointmentsByPatientId = async (userId) => {
 
     // Transformer les données pour chaque rendez-vous
     return appointments.map((appointment) => ({
-      id: appointment.appointment_id.toString(),
+      appointment_id: appointment.appointment_id.toString(),
       "APPOINTMENT_SLOT.DOCTOR_SCHEDULE.doctor_id": appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
       patientId: appointment.patient_id.toString(),
       "APPOINTMENT_SLOT.working_date": appointment.APPOINTMENT_SLOT?.working_date,
@@ -330,7 +360,7 @@ const getFirstUpcomingAppointmentByPatientId = async (userId) => {
     }
 
     return {
-      id: appointment.appointment_id.toString(),
+      appointment_id: appointment.appointment_id.toString(),
       "APPOINTMENT_SLOT.DOCTOR_SCHEDULE.doctor_id": appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
       patientId: appointment.patient_id.toString(),
       "APPOINTMENT_SLOT.working_date": appointment.APPOINTMENT_SLOT?.working_date,
@@ -398,10 +428,6 @@ const cancelAppointment = async (appointmentId) => {
 };
 
 
-
-
-
-
 const  countAppointmentsForPatientAndDoctor = async (patientId, doctorId) => {
   try {
     const count = await Appointment.count({
@@ -431,12 +457,8 @@ const  countAppointmentsForPatientAndDoctor = async (patientId, doctorId) => {
 }
 
 
-
-
 module.exports = {
-  countAppointmentsForPatientAndDoctor,
-
-  
+  countAppointmentsForPatientAndDoctor,  
   createAppointment,
   getAllAppointments,
   getAppointmentById,
