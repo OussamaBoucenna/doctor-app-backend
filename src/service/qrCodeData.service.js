@@ -1,33 +1,97 @@
 const QRCode = require('qrcode');  // Pour générer le QR code (package npm)
 const moment = require('moment');
 const Appointment = require('../model/Appointment.model');  // Import du modèle Appointment
+const QRCodeData = require('../model/qrCodeData.model'); 
 
 // Fonction pour générer et ajouter un QR code
 async function generateQRCodeForAppointment(appointmentId, content) {
-  const timestamp = moment().unix();  // Obtenir le timestamp actuel en secondes
-  
-  // Structurer les données du QR code
-  const qrCodeData = {
-    id: appointmentId.toString(),
-    content: content,
-    timestamp: timestamp
-  };
+  try {
+    const timestamp = moment().unix(); // Current time in seconds
 
-  // Générer le QR code (base64 string)
-  const qrCodeImage = await QRCode.toDataURL(content);  // Génère une image QR code en base64
-  
-  // Trouver le rendez-vous et ajouter les données QR
-  const appointment = await Appointment.findByPk(appointmentId);
-  
-  if (appointment) {
-    // Ajouter les données QR au champ JSON de qr_data
-    appointment.qr_data = qrCodeData;
+    // Build the payload to encode in the QR code
+    const qrPayload = {
+      appointmentId: appointmentId.toString(),
+      content,
+      timestamp
+    };
 
-    // Sauvegarder le rendez-vous mis à jour avec les données QR
+    // Convert payload to string and generate QR code image (base64)
+    const qrCodeImage = await QRCode.toDataURL(JSON.stringify(qrPayload));
+
+    // Find appointment by ID
+    const appointment = await Appointment.findByPk(appointmentId);
+
+    if (!appointment) {
+      throw new Error(`Appointment with ID ${appointmentId} not found`);
+    }
+
+    // Store QR data in the appointment (as JSON)
+    appointment.qr_data = {
+      ...qrPayload,
+      image: qrCodeImage // optional: store base64 image
+    };
+
     await appointment.save();
-  } else {
-    
+
+    // Optional: store in QRCodeData table (if you're using it)
+    await QRCodeData.create({
+      id: appointmentId.toString(),
+      content,
+      timestamp
+    });
+
+    return qrCodeImage;
+
+  } catch (error) {
+    console.error('Error generating QR code for appointment:', error);
+    throw error;
   }
 }
 
-exports = {generateQRCodeForAppointment};
+const getQRCodeForAppointment = async (appointmentId) => {
+  // Étape 1 : Chercher le rendez-vous
+  const appointment = await Appointment.findByPk(appointmentId);
+
+  if (!appointment) {
+    throw new Error('Appointment not found');
+  }
+
+  // Étape 2 : Vérifier si le QR est stocké directement dans le champ qr_data
+  if (appointment.qr_data) {
+    return {
+      id: appointmentId,
+      content: appointment.qr_data.content,
+      timestamp: appointment.qr_data.timestamp,
+      image: appointment.qr_data.image,
+    };
+  }
+
+  // Étape 3 : Sinon, récupérer depuis la table QRCodeData
+  const qrCodeRecord = await QRCodeData.findOne({ where: { id: appointmentId } });
+
+  if (qrCodeRecord) {
+    // Image non stockée, mais on peut la régénérer à la volée
+    const qrPayload = {
+      appointmentId: qrCodeRecord.id,
+      content: qrCodeRecord.content,
+      timestamp: qrCodeRecord.timestamp
+    };
+
+    const qrImage = await QRCode.toDataURL(JSON.stringify(qrPayload));
+
+    return {
+      id: qrCodeRecord.id,
+      content: qrCodeRecord.content,
+      timestamp: qrCodeRecord.timestamp,
+      image: qrImage,
+    };
+  }
+
+  throw new Error('QR code data not found for this appointment');
+};
+
+
+module.exports = {
+                  generateQRCodeForAppointment,
+                  getQRCodeForAppointment
+                };
