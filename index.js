@@ -60,61 +60,6 @@ app.get('/users/:id/image', async (req, res) => {
     }
   });
 
-
-
-
-  // Initialisation Firebase Admin
-const serviceAccount = require("./serviceFCM.json");
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
-
-// Route pour envoyer une notification à un utilisateur
-app.post("/api/notify-user", async (req, res) => {
-  try {
-    const { userId, title, body } = req.body;
-    
-    // Vérifier si tous les champs requis sont présents
-    if (!userId || !title || !body) {
-      return res.status(400).json({ error: "Données manquantes (userId, title, body requis)" });
-    }
-    
-    // Rechercher le token FCM de l'utilisateur dans la base de données
-    const fcmRecord = await FCM.findOne({ where: { user_id: userId } });
-    
-    // Vérifier si un token existe pour cet utilisateur
-    if (!fcmRecord || !fcmRecord.token) {
-      return res.status(404).json({ error: "Token FCM non trouvé pour cet utilisateur" });
-    }
-    
-    // Préparer le message de notification
-    const message = {
-      notification: { 
-        title, 
-        body 
-      },
-      token: fcmRecord.token,
-    };
-    
-    // Envoyer la notification via Firebase
-    const response = await admin.messaging().send(message);
-    console.log("Notification envoyée avec succès:", response);
-    
-    return res.status(200).json({ 
-      message: "Notification envoyée avec succès", 
-      response: response 
-    });
-    
-  } catch (err) {
-    console.error("Erreur lors de l'envoi de la notification:", err);
-    return res.status(500).json({ 
-      error: "Erreur lors de l'envoi de la notification", 
-      details: err.message 
-    });
-  }
-});
-
 sequelize.authenticate()
     .then(() => {
         return sequelize.sync({ force: false  }); 

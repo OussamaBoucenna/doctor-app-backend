@@ -134,6 +134,27 @@ const cancelAppointment = async (req, res) => {
 };
 
 
+const confirmAppointment = async (req, res) => {
+  const { appointment_id } = req.params;
+
+  try {
+    const formattedAppointment = await appointmentService.confirmAppointment(appointment_id);
+
+    return res.status(200).json(formattedAppointment);
+
+  } catch (error) {
+    if (error.message === 'NOT_FOUND') {
+      return res.status(404).json({ message: 'Appointment not found.' });
+    }
+    if (error.message === 'ALREADY_CANCELLED') {
+      return res.status(400).json({ message: 'Appointment already confirmed.' });
+    }
+    console.error(error);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+};
+
+
 
 
 
@@ -315,11 +336,41 @@ const getTodaysAppointments = async (req, res) => {
 };
 
 
+const getAppointmentsOfDayByDoctorId = async (req, res) => {
+  const doctorId = req.doctorId;
+  const {date} =req.body ; 
+  console.log('Date ID:', date); // Debugging
 
+  try {
+    const appointments = await appointmentService.getPendingAppointmentsByDoctorAndDay(doctorId,date);
+   console.log(appointments)
+
+  //  console.log('----------------------------------------')
+  //  console.log('----------------------------------------')
+
+  //  console.log('----------------------------------------')
+
+  //  console.log('Appointments:', appointments);
+  //  console.log('----------------------------------------')
+
+  //  console.log('----------------------------------------')
+  //  console.log('----------------------------------------')
+
+    return res.status(200).json({
+      success: true,
+      message: 'Rendez-vous du jour récupérés avec succès',
+      nextAppointments: appointments
+    });
+  } catch (error) {
+    console.error('Error getting appointments of the day:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  }
+};
 
 
 
 module.exports = {
+  getAppointmentsOfDayByDoctorId,
   getTodaysAppointments,
   getNextAppointment,
   create,
@@ -330,7 +381,8 @@ module.exports = {
   update,
   remove,
   getAppointmentDetails,
-  cancelAppointment
+  cancelAppointment,
+  confirmAppointment
 };
 
 

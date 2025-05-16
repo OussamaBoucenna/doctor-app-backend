@@ -9,6 +9,8 @@ const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
 const Specialty = require('../model/Specialty.model');
 const calculateAge = require('../utils/calculateAge'); // Assuming you have a utility function to calculate age
+const { sendNotificationToUser } = require("./../utils/fcm");
+
 
 const createAppointment = async (data, userId) => {
   const t = await Appointment.sequelize.transaction();
@@ -400,6 +402,56 @@ const cancelAppointment = async (appointmentId) => {
 
 
 
+const confirmAppointment = async (appointmentId) => {
+  const appointment = await Appointment.findByPk(appointmentId, {
+  include: [
+    {
+      model: Patient,
+      as: 'PATIENT',
+      include: {
+        model: User,
+        as: 'USER',
+        attributes: ['user_id']
+      }
+    },
+    {
+      model: AppointmentSlot,
+      as: 'APPOINTMENT_SLOT',
+      include: {
+        association: 'DOCTOR_SCHEDULE', // Assure-toi que cette association est bien définie
+      }
+    }
+  ]
+});
+  console.log("appointment ----------->", appointment.PATIENT);
+  if (!appointment) throw new Error('NOT_FOUND');
+  if (appointment.status === 'CONFIRMED') throw new Error('ALREADY_CONFIRMED');
+
+  appointment.status = 'CONFIRMED';
+  await appointment.save();
+
+  await sendNotificationToUser (appointment.PATIENT.USER.user_id, "Appointment Confirmation", "Your appointment has been confirmed.");
+
+
+  // Formaté comme demandé
+  return {
+    success: true,
+    message: "Appointment confirmed.",
+    appointment: {
+      id: appointment.appointment_id.toString(),
+      doctorId: appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
+      patientId: appointment.patient_id.toString(),
+      workingDate: appointment.APPOINTMENT_SLOT?.working_date,
+      startTime: appointment.APPOINTMENT_SLOT?.start_time,
+      status: appointment.status,
+      reason: appointment.reason
+    }
+  };
+};
+
+
+
+
 
 
 const  countAppointmentsForPatientAndDoctor = async (patientId, doctorId) => {
@@ -431,11 +483,161 @@ const  countAppointmentsForPatientAndDoctor = async (patientId, doctorId) => {
 }
 
 
+// const getPendingAppointmentsByDoctorAndDay = async (doctorId, dateString) => {
+//   // Convertir la date reçue ("May 24, 2025 3:43:08 PM") en format "YYYY-MM-DD"
+//   const date = new Date(dateString);  // "May 24, 2025 3:43:08 PM"
+//   const today = date.toISOString().split('T')[0];  // "2025-05-24"
+//   const todaysAppointments = await Appointment.findAll({
+//       include: [
+//         {
+//           model: AppointmentSlot,
+//           where: {
+//             working_date: today
+//           },
+//           include: [
+//             {
+//               model: DoctorSchedule,
+//               where: { doctor_id: doctorId }
+//             }
+//           ]
+//         },
+//         {
+//           model: Patient,
+//           include: [
+//             {
+//               model: User,
+//               attributes: ['first_name', 'last_name', 'email', 'phone']
+//             }
+//           ]
+//         }
+//       ],
+//       where: {
+//         status: {
+//           [Op.in]: ['PENDING', 'CONFIRMED']
+//         }
+//       },
+//       order: [
+//         [AppointmentSlot, 'start_time', 'ASC']
+//       ]
+//     });
+
+//     if (!todaysAppointments || todaysAppointments.length === 0) {
+//       return  new Error("No appointments found for the given date.");
+      
+//     }
+
+//     const formatted = await Promise.all(todaysAppointments.map(async (appointment) => {
+//       const count = await countAppointmentsForPatientAndDoctor(appointment.patient_id, doctorId);
+//       return {
+//         appointment_id: appointment.appointment_id,
+//         patient_id: appointment.patient_id,
+//         status: appointment.status,
+//         fullname: `${appointment.PATIENT.USER.first_name} ${appointment.PATIENT.USER.last_name}`,
+//         start_time: appointment.APPOINTMENT_SLOT.start_time,
+//         reason: appointment.reason,
+//         numberOfVisit: count
+//       };
+//     }));
+
+//     return formatted;
+
+// };
+
+
+const getPendingAppointmentsByDoctorAndDay = async (doctorId, dateString) => {
+  try {
+    // Convertir la date reçue ("May 24, 2025 3:43:08 PM") en format "YYYY-MM-DD"
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error("Date invalide fournie");
+    }
+
+    const today = date.toISOString().split('T')[0];  // "2025-05-24"
+
+
+    console.log("today ----------->", today);
+    
+    const todaysAppointments = await Appointment.findAll({
+      include: [
+        {
+          model: AppointmentSlot,
+          where: {
+            working_date: today
+          },
+          include: [
+            {
+              model: DoctorSchedule,
+              where: { doctor_id: doctorId }
+            }
+          ]
+        },
+        {
+          model: Patient,
+          include: [
+            {
+              model: User,
+              attributes: ['first_name', 'last_name', 'email', 'phone','image']
+            }
+          ]
+        }
+      ],
+      where: {
+        status: {
+          [Op.in]: ['PENDING']
+        }
+      },
+      order: [
+        [AppointmentSlot, 'start_time', 'ASC']
+      ]
+    });
+    
+    if (!todaysAppointments || todaysAppointments.length === 0) {
+      return [];  // Retourner un tableau vide plutôt qu'une erreur
+    }
+    
+    const formatted = await Promise.all(todaysAppointments.map(async (appointment) => {
+      try {
+        const count = await countAppointmentsForPatientAndDoctor(appointment.patient_id, doctorId);
+        return {
+          appointement_id: appointment.appointment_id,
+          patient_id: appointment.patient_id,
+          status: appointment.status,
+          fullname: `${appointment.PATIENT.USER.first_name} ${appointment.PATIENT.USER.last_name}`,
+          start_time: appointment.APPOINTMENT_SLOT.start_time,
+          reason: appointment.reason,
+          imageUrl: appointment.PATIENT.USER.image,
+          numberOfVisit: count
+        };
+      } catch (error) {
+        console.error(`Erreur lors du traitement de l'appointment ${appointment.appointment_id}:`, error);
+        // Retourner l'objet avec les données de base mais sans le nombre de visites
+        return {
+          appointment_id: appointment.appointment_id,
+          patient_id: appointment.patient_id,
+          status: appointment.status,
+          fullname: `${appointment.PATIENT.USER.first_name} ${appointment.PATIENT.USER.last_name}`,
+          start_time: appointment.APPOINTMENT_SLOT.start_time,
+          reason: appointment.reason,
+          imageUrl: appointment.PATIENT.USER.image,
+          numberOfVisit: 0  
+        };
+      }
+    }));
+    
+    return formatted;
+    
+  } catch (error) {
+    console.error("Erreur dans getPendingAppointmentsByDoctorAndDay:", error);
+    throw new Error(`Impossible de récupérer les rendez-vous: ${error.message}`);
+  }
+};
+
+
 
 
 module.exports = {
   countAppointmentsForPatientAndDoctor,
-
+getPendingAppointmentsByDoctorAndDay,
   
   createAppointment,
   getAllAppointments,
@@ -445,6 +647,7 @@ module.exports = {
   updateAppointment,
   deleteAppointment,
   getAppointmentDetailsById,
-  cancelAppointment
+  cancelAppointment,
+  confirmAppointment
 
 };
