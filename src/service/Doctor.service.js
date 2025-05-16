@@ -37,7 +37,7 @@ async function getAllDoctors() {
       return {
         id: doctor.doctor_id,
         name: `${user.first_name} ${user.last_name}`,
-        specialty: specialtyMap[doctor.specialty_id] || 'Unknown Specialty', // Fixed: use doctor's specialty_id
+        specialty: specialties[0] || 'Unknown Specialty', // Fixed: use doctor's specialty_id
         hospital: doctor.clinique_name || 'Unknown Clinic',
         rating: doctor.rating || 0,
         reviewCount: doctor.reviewCount || 0,
