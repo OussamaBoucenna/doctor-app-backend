@@ -16,7 +16,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
           { model: Medication },
           { 
             model: Doctor, 
-            as: 'Doctor',
             include: [{
               model: User,
               attributes: ['user_id', 'first_name', 'last_name', 'email']
@@ -24,7 +23,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
           },
           { 
             model: Patient, 
-            as: 'Patient',
             include: [{
               model: User,
               attributes: ['user_id', 'first_name', 'last_name', 'email']
@@ -43,12 +41,10 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
           { model: Medication },
           { 
             model: Doctor, 
-            as: 'Doctor',
             include: [
               {
                 model: User,
                 attributes: ['user_id', 'first_name', 'last_name', 'email'],
-                as: 'user'
               },
               {
                 model: Specialty, // Pas besoin de `as`
@@ -58,7 +54,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
           },
           { 
             model: Patient, 
-            as: 'Patient',
             include: [
               {
                 model: User,
@@ -91,7 +86,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
           { model: Medication },
           { 
             model: Patient, 
-            as: 'Patient',
             include: [{
               model: User,
               attributes: ['user_id', 'first_name', 'last_name', 'email']
@@ -112,7 +106,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
           { model: Medication },
           { 
             model: Doctor, 
-            as: 'Doctor',
             include: [{
               model: User,
               attributes: ['user_id', 'first_name', 'last_name', 'email'],
@@ -131,20 +124,20 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
     try {
       // Vérifier si le docteur et le patient existent
       const doctor = await Doctor.findByPk(prescriptionData.doctorId, {
-        include: [{ model: User, as: 'user' }]
+        include: [{ model: User }]
       });
       
       const patient = await Patient.findByPk(prescriptionData.patientId, {
-        include: [{ model: User, as: 'user' }]
+        include: [{ model: User}]
       });
-    // console.log(doctor)
-    // console.log("user -->",doctor.user)
+     console.log(patient)
+     //console.log("user -->",doctor.User)
   
-      if (!doctor || !doctor.user || doctor.user.role !== 'doctor') {
+      if (!doctor || !doctor.USER.dataValues || doctor.USER.dataValues.role !== 'doctor') {
         throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
       }
 
-      if (!patient || !patient.user || patient.user.role !== 'patient') {
+      if (!patient || !patient.User.dataValues || patient.User.dataValues.role !== 'patient') {
         throw new Error('Le patient spécifié n\'existe pas ou n\'est pas un patient');
       }
 
