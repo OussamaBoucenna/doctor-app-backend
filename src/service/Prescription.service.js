@@ -58,14 +58,13 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
               {
                 model: User,
                 attributes: ['user_id', 'first_name', 'last_name', 'email'],
-                as: 'user'
               }
             ]
           }
         ]
       });
-
-      const prescription = transformPrescription(prescriptionData);
+    
+      const prescription = transformPrescription(prescriptionData.dataValues);
   
       if (!prescription) {
         throw new Error('Prescription not found');
@@ -77,7 +76,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
     }
   };
   
-
   const  getPrescriptionsByDoctor= async (doctorId)=> {
     try {
       return await Prescription.findAll({
@@ -130,14 +128,14 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
       const patient = await Patient.findByPk(prescriptionData.patientId, {
         include: [{ model: User}]
       });
-     console.log(patient)
+     console.log("doctor -->",doctor)
      //console.log("user -->",doctor.User)
   
       if (!doctor || !doctor.USER.dataValues || doctor.USER.dataValues.role !== 'doctor') {
         throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
       }
 
-      if (!patient || !patient.User.dataValues || patient.User.dataValues.role !== 'patient') {
+      if (!patient || !patient.USER.dataValues || patient.USER.dataValues.role !== 'patient') {
         throw new Error('Le patient spécifié n\'existe pas ou n\'est pas un patient');
       }
 
@@ -153,7 +151,8 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
         doctor_id: prescriptionData.doctorId,
         instructions: prescriptionData.instructions,
         expiry_date: new Date(prescriptionData.expiryDate)
-      },  );
+      }, );
+
       // Créer les médicaments associés
       if (prescriptionData.medications && prescriptionData.medications.length > 0) {
         const medicationsToCreate = prescriptionData.medications.map(med => ({
@@ -166,7 +165,6 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
 
        // await Medication.bulkCreate(medicationsToCreate, { transaction });
         await Medication.bulkCreate(medicationsToCreate);
-
       }
 
       console.log("prescription -->",prescription.prescription_id)

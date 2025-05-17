@@ -69,7 +69,7 @@ const prescriptionService = require('../service/Prescription.service');
       // Transformer les données du frontend en format attendu par le service
       const prescriptionData = {
         patientId: parseInt(req.body.patientId),
-        doctorId: parseInt(req.body.doctorId),
+        doctorId: req.doctorId,
         instructions: req.body.instructions,
         expiryDate: req.body.expiryDate,
         medications: req.body.medications
