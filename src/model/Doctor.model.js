@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('./../config/config');
 const User = require('./User.model');
-const Specialty = require('./Specialty.model'); // Assuming you have a Specialty model
+const Specialty = require('./Specialty.model');
 
 const Doctor = sequelize.define('DOCTOR', {
   doctor_id: {
@@ -57,10 +57,10 @@ const Doctor = sequelize.define('DOCTOR', {
     defaultValue: 0,
     allowNull: true
   },
-  specialty_id: { // Add specialty_id field
+  specialty_id: {
     type: DataTypes.INTEGER,
     references: {
-      model: Specialty, // Reference to the Specialty model
+      model: Specialty,
       key: 'specialty_id'
     },
     allowNull: true
@@ -69,12 +69,9 @@ const Doctor = sequelize.define('DOCTOR', {
   timestamps: false
 });
 
-// Set up the relationships
 Doctor.belongsTo(User, { foreignKey: 'user_id'});
 User.hasOne(Doctor, { foreignKey: 'user_id' });
-
-
-Doctor.belongsTo(Specialty, { foreignKey: 'specialty_id' }); // Associate Doctor with Specialty
-Specialty.hasMany(Doctor, { foreignKey: 'specialty_id' }); // One specialty can have many doctors
+Doctor.belongsTo(Specialty, { foreignKey: 'specialty_id' });
+Specialty.hasMany(Doctor, { foreignKey: 'specialty_id' });
 
 module.exports = Doctor;

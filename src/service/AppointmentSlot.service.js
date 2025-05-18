@@ -1,5 +1,5 @@
 const AppointmentSlot = require('../model/AppointmentSlot.model');
-const DoctorSchedule = require('../model/DoctorSchedule.model');
+const DoctorSchedule = require('../model/doctorSchedule.model');
 
 const createSlot = async (data) => {
   return await AppointmentSlot.create(data);

@@ -2,6 +2,25 @@ const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./src/config/config'); 
 const User = require('./src/model/User.model');
+
+// AJOUTEZ CES IMPORTS
+const Patient = require('./src/model/Patient.model');
+const Doctor = require('./src/model/Doctor.model');
+const FavoriteDoctor = require('./src/model/FavoriteDoctor.model');
+
+// AJOUTEZ LES ASSOCIATIONS
+Patient.belongsToMany(Doctor, {
+  through: FavoriteDoctor,
+  foreignKey: 'patient_id',
+  otherKey: 'doctor_id'
+});
+
+Doctor.belongsToMany(Patient, {
+  through: FavoriteDoctor,
+  foreignKey: 'doctor_id',
+  otherKey: 'patient_id'
+});
+
 const authRoutes = require('./src/routes/Auth.route');
 const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
@@ -27,14 +46,12 @@ app.use('/api/users', userRoutes);
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/prescriptions',prescriptionRoutes);
 
-
 app.use('/api/specialties', specialtyRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/doctor-schedules', doctorScheduleRoutes);
 app.use('/api/appointment-slots', appointmentSlotRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/qrcode', qrCodeRoutes);
-
 
 app.get('/users/:id/image', async (req, res) => {
     const userId = req.params.id;
@@ -69,4 +86,3 @@ sequelize
     .catch((error) => {
         console.error("Error initializing the database or server:", error);
     });
-
