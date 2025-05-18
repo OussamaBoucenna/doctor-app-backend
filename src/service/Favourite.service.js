@@ -7,7 +7,6 @@ const getFavoriteDoctors = async (patientId) => {
   try {
     console.log('Service: Getting favorite doctors for patient:', patientId);
     
-    // Get all favorite relationships for this patient
     const favorites = await FavoriteDoctor.findAll({
       where: {
         patient_id: patientId
@@ -18,25 +17,24 @@ const getFavoriteDoctors = async (patientId) => {
           include: [
             {
               model: User,
-              attributes: ['first_name', 'last_name', 'email', 'image']
+              attributes: ['first_name', 'last_name', 'image'] 
             },
             {
               model: Specialty,
-              attributes: ['name'] // ONLY request 'name', NOT 'description'
+              attributes: ['name']
             }
           ]
         }
       ]
     });
-    
+
     console.log('Favorites found:', favorites?.length || 0);
     
-    // Format the response with only the requested fields
     const formattedFavorites = favorites.map(favorite => {
       const doctor = favorite.DOCTOR;
       const user = doctor.USER;
       const specialty = doctor.SPECIALTY;
-      
+
       return {
         doctor_id: doctor.doctor_id,
         name: `${user.first_name} ${user.last_name}`,
@@ -47,7 +45,7 @@ const getFavoriteDoctors = async (patientId) => {
         reviewCount: doctor.reviewCount
       };
     });
-    
+
     return formattedFavorites;
   } catch (error) {
     console.error('Error fetching favorite doctors:', error);
@@ -55,6 +53,7 @@ const getFavoriteDoctors = async (patientId) => {
     throw new Error(`Unable to fetch favorite doctors: ${error.message}`);
   }
 };
+
 
 // Add a doctor to favorites
 const addFavoriteDoctor = async (patientId, doctorId) => {
