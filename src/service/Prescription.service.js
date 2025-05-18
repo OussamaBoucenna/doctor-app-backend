@@ -7,6 +7,9 @@ const Doctor = require('../model/Doctor.model');
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
 const Specialty = require('../model/Specialty.model');
+const AppointmentSlot = require('../model/AppointmentSlot.model');
+const DoctorSchedule = require('../model/doctorSchedule.model');
+const Appointment = require('../model/Appointment.model');
 const transformPrescription = require('./../utils/PrescriptionTransformers'); // Assurez-vous que ce chemin est correct
 
   const  getAllPrescriptions= async () =>  {
@@ -116,69 +119,69 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
     }
   }
 
-  const  createPrescription = async(prescriptionData)=> {
-  //  const transaction = await sequelize.transaction();
-  // console.log("prescriptionData -->",prescriptionData)
-    try {
-      // Vérifier si le docteur et le patient existent
-      const doctor = await Doctor.findByPk(prescriptionData.doctorId, {
-        include: [{ model: User }]
-      });
+  // const  createPrescription = async(prescriptionData)=> {
+  // //  const transaction = await sequelize.transaction();
+  // // console.log("prescriptionData -->",prescriptionData)
+  //   try {
+  //     // Vérifier si le docteur et le patient existent
+  //     const doctor = await Doctor.findByPk(prescriptionData.doctorId, {
+  //       include: [{ model: User }]
+  //     });
       
-      const patient = await Patient.findByPk(prescriptionData.patientId, {
-        include: [{ model: User}]
-      });
-     console.log("doctor -->",doctor)
-     //console.log("user -->",doctor.User)
+  //     const patient = await Patient.findByPk(prescriptionData.patientId, {
+  //       include: [{ model: User}]
+  //     });
+  //    //console.log("doctor -->",doctor)
+  //    //console.log("user -->",doctor.User)
   
-      if (!doctor || !doctor.USER.dataValues || doctor.USER.dataValues.role !== 'doctor') {
-        throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
-      }
+  //     if (!doctor || !doctor.USER.dataValues || doctor.USER.dataValues.role !== 'doctor') {
+  //       throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
+  //     }
 
-      if (!patient || !patient.USER.dataValues || patient.USER.dataValues.role !== 'patient') {
-        throw new Error('Le patient spécifié n\'existe pas ou n\'est pas un patient');
-      }
+  //     if (!patient || !patient.USER.dataValues || patient.USER.dataValues.role !== 'patient') {
+  //       throw new Error('Le patient spécifié n\'existe pas ou n\'est pas un patient');
+  //     }
 
-      // Créer la prescription
-      // const prescription = await Prescription.create({
-      //   patient_id: prescriptionData.patientId,
-      //   doctor_id: prescriptionData.doctorId,
-      //   instructions: prescriptionData.instructions,
-      //   expiry_date: new Date(prescriptionData.expiryDate)
-      // }, { transaction });
-      const prescription = await Prescription.create({
-        patient_id: prescriptionData.patientId,
-        doctor_id: prescriptionData.doctorId,
-        instructions: prescriptionData.instructions,
-        expiry_date: new Date(prescriptionData.expiryDate)
-      }, );
+  //     // Créer la prescription
+  //     // const prescription = await Prescription.create({
+  //     //   patient_id: prescriptionData.patientId,
+  //     //   doctor_id: prescriptionData.doctorId,
+  //     //   instructions: prescriptionData.instructions,
+  //     //   expiry_date: new Date(prescriptionData.expiryDate)
+  //     // }, { transaction });
+  //     const prescription = await Prescription.create({
+  //       patient_id: prescriptionData.patientId,
+  //       doctor_id: prescriptionData.doctorId,
+  //       instructions: prescriptionData.instructions,
+  //       expiry_date: new Date(prescriptionData.expiryDate)
+  //     }, );
 
-      // Créer les médicaments associés
-      if (prescriptionData.medications && prescriptionData.medications.length > 0) {
-        const medicationsToCreate = prescriptionData.medications.map(med => ({
-          prescription_id: prescription.prescription_id,
-          name: med.name,
-          dosage: med.dosage,
-          frequency: med.frequency,
-          duration: med.duration
-        }));
+  //     // Créer les médicaments associés
+  //     if (prescriptionData.medications && prescriptionData.medications.length > 0) {
+  //       const medicationsToCreate = prescriptionData.medications.map(med => ({
+  //         prescription_id: prescription.prescription_id,
+  //         name: med.name,
+  //         dosage: med.dosage,
+  //         frequency: med.frequency,
+  //         duration: med.duration
+  //       }));
 
-       // await Medication.bulkCreate(medicationsToCreate, { transaction });
-        await Medication.bulkCreate(medicationsToCreate);
-      }
+  //      // await Medication.bulkCreate(medicationsToCreate, { transaction });
+  //       await Medication.bulkCreate(medicationsToCreate);
+  //     }
 
-      console.log("prescription -->",prescription.prescription_id)
-      // await transaction.commit();
+  //     //console.log("prescription -->",prescription.prescription_id)
+  //     // await transaction.commit();
 
-      // Récupérer la prescription créée avec ses médicaments
-      const newPrescription = await getPrescriptionById(prescription.prescription_id);
+  //     // Récupérer la prescription créée avec ses médicaments
+  //     const newPrescription = await getPrescriptionById(prescription.prescription_id);
 
-      return  newPrescription;
-    } catch (error) {
-      // await transaction.rollback();
-      throw new Error(`Error creating prescription: ${error.message}`);
-    }
-  }
+  //     return  newPrescription;
+  //   } catch (error) {
+  //     // await transaction.rollback();
+  //     throw new Error(`Error creating prescription: ${error.message}`);
+  //   }
+  // }
 
   const  updatePrescription = async (id, prescriptionData) => {
     const transaction = await sequelize.transaction();
@@ -270,6 +273,141 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
       throw new Error(`Error deleting prescription: ${error.message}`);
     }
   }
+
+  const createPrescription = async(prescriptionData) => {
+    const transaction = await sequelize.transaction();
+    console.log("prescription => ",prescriptionData)
+    try {
+      // First, confirm the appointment if an appointmentId is provided
+      if (prescriptionData.appointmentId) {
+        console.log("appointmentId => ",prescriptionData.appointmentId)
+        const appointment = await Appointment.findByPk(prescriptionData.appointmentId, {
+          include: [
+            {
+              model: Patient,
+              as: 'PATIENT',
+              include: {
+                model: User,
+                as: 'USER',
+                attributes: ['user_id']
+              }
+            },
+            {
+              model: AppointmentSlot,
+              as: 'APPOINTMENT_SLOT',
+              include: {
+                association: 'DOCTOR_SCHEDULE',
+              }
+            }
+          ],
+          transaction
+        });
+  
+        if (!appointment) throw new Error('Appointment not found');
+        if (appointment.status === 'COMPLETED') throw new Error('Appointment already completed');
+        
+        // Update appointment status
+        appointment.status = 'COMPLETED';
+        console.log("appointment.status -->",appointment.status)
+        await appointment.save({ transaction });
+      
+
+        // use the ones from the appointment
+        if (!prescriptionData.doctorId && appointment.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id) {
+          prescriptionData.doctorId = appointment.APPOINTMENT_SLOT.DOCTOR_SCHEDULE.doctor_id;
+        }
+        
+        if (!prescriptionData.patientId && appointment.patient_id) {
+          prescriptionData.patientId = appointment.patient_id;
+        }
+      }
+  
+      // Verify doctor and patient exist
+      const doctor = await Doctor.findByPk(prescriptionData.doctorId, {
+        include: [{ model: User, as: 'USER' }],
+        transaction
+      });
+      
+      const patient = await Patient.findByPk(prescriptionData.patientId, {
+        include: [{ model: User, as: 'USER' }],
+        transaction
+      });
+  
+      if (!doctor || !doctor.USER.dataValues || doctor.USER.dataValues.role !== 'doctor') {
+        throw new Error('Le médecin spécifié n\'existe pas ou n\'est pas un médecin');
+      }
+      
+      if (!patient || !patient.USER.dataValues || patient.USER.dataValues.role !== 'patient') {
+        throw new Error('Le patient spécifié n\'existe pas ou n\'est pas un patient');
+      }
+  
+      // Create prescription
+      const prescription = await Prescription.create({
+        patient_id: prescriptionData.patientId,
+        doctor_id: prescriptionData.doctorId,
+        instructions: prescriptionData.instructions,
+        expiry_date: new Date(prescriptionData.expiryDate)
+      }, { transaction });
+  
+      // Create associated medications
+      if (prescriptionData.medications && prescriptionData.medications.length > 0) {
+        const medicationsToCreate = prescriptionData.medications.map(med => ({
+          prescription_id: prescription.prescription_id,
+          name: med.name,
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration
+        }));
+        
+        await Medication.bulkCreate(medicationsToCreate, { transaction });
+      }
+  
+      // Commit transaction
+      await transaction.commit();
+  
+      // Retrieve the created prescription with its medications
+      const newPrescription = await getPrescriptionById(prescription.prescription_id);
+      
+      // Format and return combined results
+      const result = {
+        success: true,
+        message: "Prescription created successfully",
+        prescription: newPrescription
+      };
+      
+      // Add appointment information if an appointment was confirmed
+      if (prescriptionData.appointmentId) {
+        const confirmationDetails = await Appointment.findByPk(prescriptionData.appointmentId, {
+          include: [
+            {
+              model: AppointmentSlot,
+              as: 'APPOINTMENT_SLOT',
+              include: {
+                association: 'DOCTOR_SCHEDULE',
+              }
+            }
+          ]
+        });
+        
+        result.appointmentConfirmation = {
+          id: confirmationDetails.appointment_id.toString(),
+          doctorId: confirmationDetails.APPOINTMENT_SLOT?.DOCTOR_SCHEDULE?.doctor_id?.toString(),
+          patientId: confirmationDetails.patient_id.toString(),
+          workingDate: confirmationDetails.APPOINTMENT_SLOT?.working_date,
+          startTime: confirmationDetails.APPOINTMENT_SLOT?.start_time,
+          status: confirmationDetails.status,
+          reason: confirmationDetails.reason
+        };
+      }
+      
+      return result;
+      
+    } catch (error) {
+      // Rollback transaction on error
+      await transaction.rollback();
+      throw new Error(`Error processing request: ${error.message}`);
+    }
+  };
 
 
 module.exports = {getAllPrescriptions,getPrescriptionById,getPrescriptionsByDoctor,getPrescriptionsByPatient,createPrescription,updatePrescription,deletePrescription};

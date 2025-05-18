@@ -1,5 +1,5 @@
 function transformPrescription(prescription) {
-  console.log("prescription -->", prescription);
+  //console.log("prescription -->", prescription);
   
   // Extract medication data
   const medications = prescription.MEDICATIONs.map(med => ({
