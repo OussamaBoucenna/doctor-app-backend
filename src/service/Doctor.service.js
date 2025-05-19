@@ -255,7 +255,7 @@ const getAppointmentsByDate = async (doctorId, date) => {
         patient_id: appointment.patient_id,
         status: appointment.status,
         reason: appointment.reason,
-        qr_data: appointment.qr_data,
+        // qr_data: appointment.qr_data,
         slot_info: slotInfo,
         patient_info: patientInfo,
         doctor_info: doctorInfo

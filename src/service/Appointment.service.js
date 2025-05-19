@@ -429,8 +429,6 @@ const cancelAppointment = async (appointmentId) => {
 };
 
 
-
-
 const confirmAppointment = async (appointmentId) => {
   const appointment = await Appointment.findByPk(appointmentId, {
   include: [
@@ -477,9 +475,6 @@ const confirmAppointment = async (appointmentId) => {
     }
   };
 };
-
-
-
 
 
 

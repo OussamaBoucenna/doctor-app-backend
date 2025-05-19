@@ -38,13 +38,13 @@ const Prescription = sequelize.define('PRESCRIPTION', {
 
 // Définir les relations pour Prescription
 // Nous utilisons les IDs des tables Doctor et Patient, pas directement des Users
-Prescription.belongsTo(Doctor, { foreignKey: 'doctor_id', as: 'Doctor' });
-Prescription.belongsTo(Patient, { foreignKey: 'patient_id', as: 'Patient' });
+Prescription.belongsTo(Doctor, { foreignKey: 'doctor_id' });
+Prescription.belongsTo(Patient, { foreignKey: 'patient_id' });
 Prescription.hasMany(Medication, { foreignKey: 'prescription_id' });
 Medication.belongsTo(Prescription, { foreignKey: 'prescription_id' });
 
 // Relation dans l'autre sens
-Doctor.hasMany(Prescription, { foreignKey: 'doctor_id', as: 'Prescriptions' });
-Patient.hasMany(Prescription, { foreignKey: 'patient_id', as: 'Prescriptions' });
+Doctor.hasMany(Prescription, { foreignKey: 'doctor_id'});
+Patient.hasMany(Prescription, { foreignKey: 'patient_id' });
 
 module.exports = Prescription;

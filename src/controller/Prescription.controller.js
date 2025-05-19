@@ -64,12 +64,13 @@ const prescriptionService = require('../service/Prescription.service');
   }
 
   const createPrescription = async (req, res) => {
-    console.log("request recived  --> ",req.body)
+    //console.log("request recived  --> ",req.body)
     try {
       // Transformer les données du frontend en format attendu par le service
       const prescriptionData = {
+        appointmentId: parseInt(req.body.appointmentId),
         patientId: parseInt(req.body.patientId),
-        doctorId: parseInt(req.body.doctorId),
+        doctorId: req.doctorId,
         instructions: req.body.instructions,
         expiryDate: req.body.expiryDate,
         medications: req.body.medications

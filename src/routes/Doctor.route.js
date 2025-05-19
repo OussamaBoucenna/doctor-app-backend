@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const DoctorController = require('../controller/Doctor.controller');
+const { authMiddleware, getDoctor } = require('../middlewares/Auth');
   // Assurez-vous d'importer les modèles correctement
 // Route pour récupérer tous les docteurs
 // router.get('/all', async (req, res) => {
@@ -49,7 +50,7 @@ router.put('/:id', DoctorController.updateDoctor);
 // Delete doctor
 router.delete('/:id', DoctorController.deleteDoctor);
 //Get appointment by date
-router.get('/:id/appointments/:date', DoctorController.getAppointmentsByDate);
+router.get('/appointments/:date',authMiddleware,getDoctor, DoctorController.getAppointmentsByDate);
 
 
 module.exports = router;

@@ -84,7 +84,7 @@ const deleteDoctor = async (req, res) => {
 const getAppointmentsByDate = async (req, res) => {
   try {
     // Change from doctorId to id to match the route parameter
-    const doctorId = req.params.id; // This matches the :id in your route
+    const doctorId = req.doctorId; // This matches the :id in your route
     const date = req.params.date;   // This matches the :date in your route
 
     // Debug logging

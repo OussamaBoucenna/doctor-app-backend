@@ -7,6 +7,7 @@ const router = express.Router();
  * @desc Create a new doctor schedule
  * @access Private
  */
+router.post('/bulk-by-day', doctorScheduleController.createSchedulesByDay);
 router.post('/', doctorScheduleController.createSchedule);
 
 /**
