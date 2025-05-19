@@ -369,9 +369,46 @@ const getAppointmentsOfDayByDoctorId = async (req, res) => {
 };
 
 
+const getAppointmentsConfirmdOfDayByDoctorId = async (req, res) => {
+  const doctorId = req.doctorId;
+  const date = req.params.date;   // This matches the :date in your route
+
+    console.log('Date:', date);
+
+    // Validate input parameters
+    if (!doctorId || !date) {
+      return res.status(400).json({ 
+        message: 'Both doctorId and date are required parameters',
+        received: { doctorId, date }
+      });
+    }
+
+    // Validate date format (assuming YYYY-MM-DD format)
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      return res.status(400).json({ 
+        message: 'Invalid date format. Please use YYYY-MM-DD format' 
+      });
+    }
+  try {
+    const appointments = await appointmentService.getConfirmedAppointmentsByDoctorAndDay(doctorId,date);
+   console.log(appointments)
+
+    return res.status(200).json({
+      message: 'Appointments retrieved successfully',
+      data: appointments,
+      count: appointments.length
+    });
+  } catch (error) {
+    console.error('Error getting appointments of the day:', error);
+    return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  }
+};
+
 
 module.exports = {
   getAppointmentsOfDayByDoctorId,
+  getAppointmentsConfirmdOfDayByDoctorId,
   getTodaysAppointments,
   getNextAppointment,
   create,

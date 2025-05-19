@@ -49,13 +49,14 @@ async function generateQRCodeForAppointment(appointmentId, content) {
 }
 
 const getQRCodeForAppointment = async (appointmentId) => {
+  console.log('Fetching QR code for appointment ID:', appointmentId);
   // Étape 1 : Chercher le rendez-vous
   const appointment = await Appointment.findByPk(appointmentId);
 
   if (!appointment) {
     throw new Error('Appointment not found');
   }
-
+  console.log('Appointment found:', appointment);
   // Étape 2 : Vérifier si le QR est stocké directement dans le champ qr_data
   if (appointment.qr_data) {
     return {

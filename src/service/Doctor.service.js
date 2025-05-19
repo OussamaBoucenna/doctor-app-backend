@@ -2,7 +2,7 @@ const Doctor = require('../model/Doctor.model');
 const User = require('../model/User.model');
 const Specialty = require('../model/Specialty.model');
 const Appointment = require('../model/Appointment.model');
-const DoctorSchedule = require('../model/doctorSchedule.model');
+const DoctorSchedule = require('../model/DoctorSchedule.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
 const Patient = require('../model/Patient.model');
 
@@ -148,7 +148,7 @@ const getAppointmentsByDate = async (doctorId, date) => {
       }
     });
 
-    console.log('Schedule found:', schedule);
+    console.log('Schedule found:', schedule.schedule_id);
 
     if (!schedule) {
       console.log('No schedule found for doctor on this date');
