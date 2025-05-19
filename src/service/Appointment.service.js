@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 const moment = require('moment');
 const QRCode = require('qrcode');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
-const DoctorSchedule = require('../model/doctorSchedule.model');
+const DoctorSchedule = require('../model/DoctorSchedule.model');
 const Appointment = require('../model/Appointment.model');
 const Doctor = require('../model/Doctor.model');
 const Patient = require('../model/Patient.model');
@@ -296,7 +296,6 @@ const getAppointmentsByPatientId = async (userId) => {
         },
       ]
     });
-
     // Transformer les données pour chaque rendez-vous
     return appointments.map((appointment) => ({
       appointment_id: appointment.appointment_id.toString(),
