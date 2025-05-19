@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const  Doctor  = require('../model/Doctor.model'); 
+const Patient = require('../model/Patient.model');
 
 
 const SECRET = process.env.JWT_SECRET || 'secret_key';
@@ -52,5 +53,21 @@ const getDoctor = async (req, res, next) => {
   }
 };
 
+const getPatient = async (req, res, next) => {
+  try {
+    const patient = await Patient.findOne({
+      where: { user_id: req.user.userId }
+    });
 
-module.exports = {authMiddleware,getDoctor};
+    if (!patient) {
+      return res.status(404).json({ message: 'Aucun patient trouvé avec cet userId' });
+    }
+
+    req.patientId = patient.patient_id;
+    next(); // Passe à la route suivante
+  } catch (error) {
+    console.error('Erreur lors de la récupération du patientId :', error.message);
+    return res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+module.exports = {authMiddleware,getDoctor,getPatient};
