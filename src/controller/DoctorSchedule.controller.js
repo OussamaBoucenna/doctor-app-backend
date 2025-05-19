@@ -25,6 +25,31 @@ const doctorScheduleController = {
     }
   },
 
+
+  createSchedulesByDay: async (req, res) => {
+    try {
+      const dayName = req.headers.journee; // 'mercredi'
+      if (!dayName) return res.status(400).json({ error: "Missing 'journee' header" });
+  
+      const { doctor_id, start_time, end_time, appointment_duration } = req.body;
+      if (!doctor_id || !start_time || !end_time || !appointment_duration) {
+        return res.status(400).json({ error: "Missing required body fields" });
+      }
+  
+      const createdSchedules = await DoctorScheduleService.createSchedulesForDay(
+        dayName,
+        doctor_id,
+        start_time,
+        end_time,
+        appointment_duration
+      );
+  
+      res.status(201).json(createdSchedules);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   /**
    * Get all doctor schedules
    * @param {Object} req - Request object

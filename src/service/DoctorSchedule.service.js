@@ -1,5 +1,6 @@
 const DoctorSchedule = require('../model/doctorSchedule.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
+const getMatchingDates = require('../utils/getMatchingDates');
 
 const doctorScheduleService = {
   /**
@@ -23,6 +24,34 @@ const doctorScheduleService = {
       console.error('Error in createSchedule service:', error);
       throw error;
     }
+  },
+
+
+  createSchedulesForDay: async (dayName, doctorId, startTime, endTime, duration) => {
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1; // 1-based for our function
+  
+    const workingDates = getMatchingDates(dayName, year, month);
+  
+    const schedules = workingDates.map(date => ({
+      doctor_id: doctorId,
+      working_date: date,
+      start_time: startTime,
+      end_time: endTime,
+      appointment_duration: duration
+    }));
+  
+    const newSchedules = await DoctorSchedule.bulkCreate(schedules, { validate: true });
+
+    // If generateAppointmentSlots expects a single schedule at a time, iterate
+    for (const schedule of newSchedules) {
+      await generateAppointmentSlots(schedule);
+    }
+  
+  
+    return newSchedules;
   },
 
   /**
@@ -217,5 +246,8 @@ function minutesToTimeString(minutes) {
   const mins = minutes % 60;
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
 }
+
+
+
 
 module.exports = doctorScheduleService;
