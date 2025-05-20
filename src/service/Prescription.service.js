@@ -1,6 +1,7 @@
 // ================ SERVICES ================
 // services/prescriptionService.js
 const { sequelize } = require('../config/config');
+const { Op, Sequelize } = require('sequelize');
 const Prescription = require('../model/Prescription.model');
 const Medication = require('../model/Medication.model');
 const Doctor = require('../model/Doctor.model');
@@ -409,5 +410,40 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
     }
   };
 
+  const fetchPrescriptionsByAppointment = async (appointmentId) => {
+    // Récupérer le rendez-vous et le slot associé
+    const appointment = await Appointment.findOne({
+      where: { appointment_id: appointmentId },
+      include: {
+        model: AppointmentSlot,
+        attributes: ['working_date']
+      }
+    });
+  
+    if (!appointment) {
+      return null;
+    }
+  
+    const patientId = appointment.patient_id;
+    const workingDate = appointment.APPOINTMENT_SLOT.working_date;
+  
+    // Récupérer les prescriptions du même patient à la même date
+    const prescriptions = await Prescription.findAll({
+      where: {
+        patient_id: patientId,
+        [Sequelize.Op.and]: [
+          Sequelize.where(
+            Sequelize.fn('DATE', Sequelize.col('created_at')),
+            new Date(workingDate).toISOString().split('T')[0]
+          )
+        ]
+      }
+    });
+    
+  
+    return prescriptions;
+  };
+  
 
-module.exports = {getAllPrescriptions,getPrescriptionById,getPrescriptionsByDoctor,getPrescriptionsByPatient,createPrescription,updatePrescription,deletePrescription};
+
+module.exports = {fetchPrescriptionsByAppointment,getAllPrescriptions,getPrescriptionById,getPrescriptionsByDoctor,getPrescriptionsByPatient,createPrescription,updatePrescription,deletePrescription};

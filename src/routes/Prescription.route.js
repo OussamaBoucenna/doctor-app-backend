@@ -10,8 +10,10 @@ router.get('/', prescriptionController.getAllPrescriptions);
 router.get('/:id', prescriptionController.getPrescriptionById);
 router.get('/doctor/:doctorId',  prescriptionController.getPrescriptionsByDoctor);
 router.get('/patient/:patientId', prescriptionController.getPrescriptionsByPatient);
+router.get('/appointments/:appointmentId', prescriptionController.getPrescriptionsByAppointmentId);
 router.post('/', authMiddleware,getDoctor,prescriptionController.createPrescription);
 router.put('/:id', prescriptionController.updatePrescription);
 router.delete('/:id', prescriptionController.deletePrescription);
+
 
 module.exports = router;

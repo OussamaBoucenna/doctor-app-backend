@@ -331,7 +331,7 @@ const getFirstUpcomingAppointmentByPatientId = async (userId) => {
 
     // Step 2: Fetch the first upcoming appointment
     const appointment = await Appointment.findOne({
-      where: { patient_id: patient.patient_id },
+      where: { patient_id: patient.patient_id , status: 'CONFIRMED'},
       include: [
         {
           model: AppointmentSlot,

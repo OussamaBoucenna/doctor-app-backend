@@ -131,8 +131,30 @@ const prescriptionService = require('../service/Prescription.service');
     }
   }
 
+  const getPrescriptionsByAppointmentId = async (req, res) => {
+    const { appointmentId } = req.params;
+  
+    try {
+      const prescriptions = await prescriptionService.fetchPrescriptionsByAppointment(appointmentId);
+  
+      if (!prescriptions) {
+        return res.status(404).json({ success: false, message: 'Appointment not found' });
+      }
+  
+      return res.status(200).json({
+        success: true,
+        message: 'Prescriptions fetched successfully',
+        data: prescriptions
+      });
+    } catch (error) {
+      console.error('Error fetching prescriptions:', error);
+      return res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+    }
+  };
+
 module.exports = {
   getAllPrescriptions,
+  getPrescriptionsByAppointmentId,
   getPrescriptionById,
   getPrescriptionsByDoctor,
   getPrescriptionsByPatient,
