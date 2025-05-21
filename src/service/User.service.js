@@ -1,5 +1,7 @@
 const Patient = require('../model/Patient.model');
 const  User  = require('./../model/User.model');
+const { sequelize } = require('../config/config');
+const { Op, Sequelize } = require('sequelize');
 
 const getUserById = async (id) => {
   const user = await User.findByPk(id);
