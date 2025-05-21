@@ -1,4 +1,4 @@
-const DoctorSchedule = require('../model/doctorSchedule.model');
+const DoctorSchedule = require('../model/DoctorSchedule.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
 const getMatchingDates = require('../utils/getMatchingDates');
 

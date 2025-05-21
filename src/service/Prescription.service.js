@@ -8,7 +8,7 @@ const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
 const Specialty = require('../model/Specialty.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
-const DoctorSchedule = require('../model/doctorSchedule.model');
+const DoctorSchedule = require('../model/DoctorSchedule.model');
 const Appointment = require('../model/Appointment.model');
 const transformPrescription = require('./../utils/PrescriptionTransformers'); // Assurez-vous que ce chemin est correct
 

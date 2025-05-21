@@ -2,7 +2,7 @@ const Doctor = require('../model/Doctor.model');
 const User = require('../model/User.model');
 const Specialty = require('../model/Specialty.model');
 const Appointment = require('../model/Appointment.model');
-const DoctorSchedule = require('../model/doctorSchedule.model');
+const DoctorSchedule = require('../model/DoctorSchedule.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
 const Patient = require('../model/Patient.model');
 

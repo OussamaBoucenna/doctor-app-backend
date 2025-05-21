@@ -1,5 +1,5 @@
 const AppointmentSlot = require('../model/AppointmentSlot.model');
-const DoctorSchedule = require('../model/doctorSchedule.model');
+const DoctorSchedule = require('../model/DoctorSchedule.model');
 const Doctor = require('../model/Doctor.model');
 const { sequelize } = require('../config/config');
 const { Op } = require('sequelize');

@@ -238,7 +238,7 @@ const getNextAppointment = async (req, res) => {
       });
     }
     const count = await appointmentService.countAppointmentsForPatientAndDoctor(nextAppointment.patient_id, doctorId);
-    console.log('Nombre de visites pour le patient et le médecin:', nextAppointment.PATIENT);
+    //console.log('Nombre de visites pour le patient et le médecin:', nextAppointment.PATIENT);
     return res.status(200).json({
       success: true,
       message: 'Prochain rendez-vous récupéré avec succès',
@@ -340,11 +340,11 @@ const getTodaysAppointments = async (req, res) => {
 const getAppointmentsOfDayByDoctorId = async (req, res) => {
   const doctorId = req.doctorId;
   const {date} =req.body ; 
-  console.log('Date ID:', date); // Debugging
+  //console.log('Date ID:', date); // Debugging
 
   try {
     const appointments = await appointmentService.getPendingAppointmentsByDoctorAndDay(doctorId,date);
-   console.log(appointments)
+  // console.log(appointments)
 
   //  console.log('----------------------------------------')
   //  console.log('----------------------------------------')
