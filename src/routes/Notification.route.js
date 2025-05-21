@@ -8,5 +8,7 @@ router.get('/', authMiddleware, getPatient, NotificationController.getAllPatient
 
 
 router.post('/create', NotificationController.createNotification);
+router.post('/:notificationId/read', authMiddleware, NotificationController.markNotificationAsRead);
+
 
 module.exports = router;

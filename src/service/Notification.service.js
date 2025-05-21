@@ -68,7 +68,30 @@ const createNotification = async (userId, notificationData) => {
   }
 };
 
+
+
+const markNotificationAsRead = async (notificationId) => {
+  try {
+    const notification = await Notification.findByPk(notificationId);
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    notification.is_read = true;
+    await notification.save();
+
+    return {
+      notification_id: notification.notification_id,
+      is_read: notification.is_read
+    };
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw new Error(`Unable to update notification: ${error.message}`);
+  }
+};
+
 module.exports = {
   getAllPatientNotifications,
-  createNotification
+  createNotification,
+  markNotificationAsRead 
 };

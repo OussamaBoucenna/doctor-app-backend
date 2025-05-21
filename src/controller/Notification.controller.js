@@ -65,7 +65,29 @@ const createNotification = async (req, res) => {
   }
 };
 
+const markNotificationAsRead = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+
+    if (!notificationId) {
+      return res.status(400).json({ message: 'Notification ID is required' });
+    }
+
+    const updatedNotification = await NotificationService.markNotificationAsRead(notificationId);
+
+    res.status(200).json({
+      message: 'Notification marked as read',
+      data: updatedNotification
+    });
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ message: 'Error updating notification', error: error.message });
+  }
+};
+
+
 module.exports = {
   getAllPatientNotifications,
-  createNotification
+  createNotification,
+  markNotificationAsRead
 };
