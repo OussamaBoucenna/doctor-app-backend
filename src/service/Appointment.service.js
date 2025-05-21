@@ -50,7 +50,7 @@ const createAppointment = async (data, userId) => {
     // Step 5: Generate QR Code data
     const timestamp = moment().unix();
     const content = `Appointment for patient ${patient.patient_id} at slot ${data.slot_id}`;
-
+    console.log("content ----------->", appointment);
     const qrPayload = {
       appointmentId: appointment.appointment_id.toString(),
       content,
@@ -331,7 +331,7 @@ const getFirstUpcomingAppointmentByPatientId = async (userId) => {
 
     // Step 2: Fetch the first upcoming appointment
     const appointment = await Appointment.findOne({
-      where: { patient_id: patient.patient_id },
+      where: { patient_id: patient.patient_id , status: 'CONFIRMED'},
       include: [
         {
           model: AppointmentSlot,
@@ -656,13 +656,103 @@ const getPendingAppointmentsByDoctorAndDay = async (doctorId, dateString) => {
   }
 };
 
+const getConfirmedAppointmentsByDoctorAndDay = async (doctorId, dateString) => {
+  try {
+    // Convert date string to YYYY-MM-DD
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      throw new Error("Date invalide fournie");
+    }
+
+    const today = date.toISOString().split("T")[0];
+
+    const confirmedAppointments = await Appointment.findAll({
+      include: [
+        {
+          model: AppointmentSlot,
+          where: { working_date: today },
+          include: [
+            {
+              model: DoctorSchedule,
+              where: { doctor_id: doctorId },
+              include: [
+                {
+                  model: Doctor,
+                  include: [
+                    {
+                      model: User,
+                      attributes: ['first_name', 'last_name']
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          model: Patient,
+          include: [
+            {
+              model: User,
+              attributes: ['first_name', 'last_name', 'email', 'phone']
+            }
+          ]
+        }
+      ],
+      where: {
+        status: {
+          [Op.in]: ['CONFIRMED']
+        }
+      },
+      order: [[AppointmentSlot, 'start_time', 'ASC']]
+    });
+
+    if (!confirmedAppointments || confirmedAppointments.length === 0) {
+      return [];
+    }
+
+    const formatted = confirmedAppointments.map((appointment) => {
+      const slot = appointment.APPOINTMENT_SLOT;
+      const doctorUser = slot.DOCTOR_SCHEDULE?.DOCTOR?.USER;
+      const patientUser = appointment.PATIENT?.USER;
+
+      return {
+        appointment_id: appointment.appointment_id,
+        slot_id: slot.slot_id,
+        patient_id: appointment.patient_id,
+        status: appointment.status,
+        reason: appointment.reason,
+        slot_info: {
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          working_date: slot.working_date,
+          is_booked: slot.is_booked
+        },
+        patient_info: {
+          name: `${patientUser.first_name} ${patientUser.last_name}`,
+          email: patientUser.email,
+          phone: patientUser.phone
+        },
+        doctor_info: {
+          doctor_id: doctorId,
+          name: `${doctorUser.first_name} ${doctorUser.last_name}`
+        }
+      };
+    });
+
+    return formatted;
+  } catch (error) {
+    console.error("Erreur dans getConfirmedAppointmentsByDoctorAndDay:", error);
+    throw new Error(`Impossible de récupérer les rendez-vous confirmés: ${error.message}`);
+  }
+};
 
 
 
 module.exports = {
   countAppointmentsForPatientAndDoctor,
-getPendingAppointmentsByDoctorAndDay,
-  
+  getPendingAppointmentsByDoctorAndDay,
+  getConfirmedAppointmentsByDoctorAndDay,
   createAppointment,
   getAllAppointments,
   getAppointmentById,

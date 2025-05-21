@@ -9,6 +9,7 @@ router.get('/', controller.getAll);
 router.get('/patient/',authMiddleware ,controller.getAppointmentsByPatientId);
 router.get('/doctor/my-next-appointments', authMiddleware, getDoctor , controller.getNextAppointment);
 router.post('/doctor/day', authMiddleware, getDoctor , controller.getAppointmentsOfDayByDoctorId);
+router.get('/doctor/jour/:date', authMiddleware, getDoctor , controller.getAppointmentsConfirmdOfDayByDoctorId);
 router.get('/doctor/todays-appointments', authMiddleware, getDoctor, controller.getTodaysAppointments);
 router.get('/first-upcoming', authMiddleware, controller.getFirstUpcomingAppointmentByPatientId);
 router.get('/appointment/:appointmentId', controller.getAppointmentDetails);

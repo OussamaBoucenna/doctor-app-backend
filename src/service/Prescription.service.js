@@ -1,6 +1,7 @@
 // ================ SERVICES ================
 // services/prescriptionService.js
 const { sequelize } = require('../config/config');
+const { Op, Sequelize } = require('sequelize');
 const Prescription = require('../model/Prescription.model');
 const Medication = require('../model/Medication.model');
 const Doctor = require('../model/Doctor.model');
@@ -304,12 +305,11 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
         });
   
         if (!appointment) throw new Error('Appointment not found');
-        if (appointment.status === 'COMPLETED') throw new Error('Appointment already completed');
-        
-        // Update appointment status
-        appointment.status = 'COMPLETED';
-        console.log("appointment.status -->",appointment.status)
-        await appointment.save({ transaction });
+        if (appointment.status !== 'COMPLETED') {
+          appointment.status = 'COMPLETED';
+          console.log("appointment.status -->", appointment.status);
+          await appointment.save({ transaction });
+        }
       
 
         // use the ones from the appointment
@@ -409,5 +409,81 @@ const transformPrescription = require('./../utils/PrescriptionTransformers'); //
     }
   };
 
+  const fetchPrescriptionsByAppointment = async (appointmentId) => {
+    const appointment = await Appointment.findOne({
+      where: { appointment_id: appointmentId },
+      include: [
+        {
+          model: AppointmentSlot,
+          attributes: ['working_date', 'start_time', 'end_time'],
+        },
+        {
+          model: Patient,
+          attributes: ['date_birthday', 'patient_id'],
+          include: [
+            { model: User, attributes: ['user_id', 'first_name', 'last_name', 'email'] }
+          ],
+        }
+      ]
+    });
+  
+    if (!appointment) {
+      return null;
+    }
+  
+    // Extract patient info
+    const patient = appointment.PATIENT;
+    
+    if (!patient || !patient.USER) {
+      throw new Error("Patient or user info missing");
+    }
+  
+    const patientId = patient.patient_id;
+    const patientName = `${patient.USER.first_name} ${patient.USER.last_name}`;
+  
+    // Calculate age from date_birthday
+    const birthDate = new Date(patient.date_birthday);
+    const today = new Date();
+    let patientAge = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      patientAge--;
+    }
+  
+    // Appointment time formatting
+    console.log("appointment.APPOINTMENT_SLOTS -->",appointment.APPOINTMENT_SLOT)
+    const workingDate = appointment.APPOINTMENT_SLOT.dataValues.working_date;
+    const startTime = appointment.APPOINTMENT_SLOT.dataValues.start_time;
+    const endTime = appointment.APPOINTMENT_SLOT.dataValues.end_time;
+    const appointmentTime = `${startTime} - ${endTime}`;
+  
+    // Date range for prescriptions
+    const startOfDay = new Date(workingDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(workingDate);
+    endOfDay.setHours(23, 59, 59, 999);
+  
+    // Fetch prescriptions for the patient on that day
+    const prescriptions = await Prescription.findAll({
+      where: {
+        patient_id: patientId,
+        // created_at: {
+        //   [Sequelize.Op.between]: [created_at, endOfDay]
+        // }
+      }
+    });
+  
+    // Return combined info with theme added to prescriptions
+    return {
+      patientName,
+      patientAge,
+      appointmentTime,
+      prescriptions
+    };
+  };
+  
+  
+  
 
-module.exports = {getAllPrescriptions,getPrescriptionById,getPrescriptionsByDoctor,getPrescriptionsByPatient,createPrescription,updatePrescription,deletePrescription};
+
+module.exports = {fetchPrescriptionsByAppointment,getAllPrescriptions,getPrescriptionById,getPrescriptionsByDoctor,getPrescriptionsByPatient,createPrescription,updatePrescription,deletePrescription};

@@ -27,7 +27,6 @@ const authRoutes = require('./src/routes/Auth.route');
 const userRoutes = require('./src/routes/User.route');
 const doctorRoutes = require('./src/routes/Doctor.route');
 const prescriptionRoutes = require('./src/routes/Prescription.route');
-
 const specialtyRoutes = require('./src/routes/Specialty.route');
 const reviewRoutes = require('./src/routes/Review.routes');
 const doctorScheduleRoutes = require('./src/routes/DoctorSchedule.routes');
@@ -36,6 +35,7 @@ const appointmentRoutes = require('./src/routes/Appointment.routes');
 const qrCodeRoutes = require('./src/routes/qrCodeData.routes');
 const FcmRoutes = require('./src/routes/Fcm.route');
 const favoritesRoutes = require('./src/routes/Favourite.route');
+const notificationRoutes = require('./src/routes/Notification.route');
 
 
 const PORT = process.env.PORT || 5000;
@@ -60,6 +60,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/qrcode', qrCodeRoutes);
 app.use('/api/fcm',FcmRoutes);
 app.use('/api/favorites', favoritesRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 app.get('/users/:id/image', async (req, res) => {

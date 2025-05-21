@@ -148,7 +148,7 @@ const getAppointmentsByDate = async (doctorId, date) => {
       }
     });
 
-    console.log('Schedule found:', schedule);
+    console.log('Schedule found:', schedule.schedule_id);
 
     if (!schedule) {
       console.log('No schedule found for doctor on this date');

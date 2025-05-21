@@ -1,0 +1,1 @@
+  console.log('Fetching QR code for appointment ID:', appointmentId);
