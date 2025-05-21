@@ -36,6 +36,7 @@ const appointmentRoutes = require('./src/routes/Appointment.routes');
 const qrCodeRoutes = require('./src/routes/qrCodeData.routes');
 const FcmRoutes = require('./src/routes/Fcm.route');
 const favoritesRoutes = require('./src/routes/Favourite.route');
+const notificationRoutes = require('./src/routes/Notification.route');
 
 
 const PORT = process.env.PORT || 5000;
@@ -60,6 +61,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/qrcode', qrCodeRoutes);
 app.use('/api/fcm',FcmRoutes);
 app.use('/api/favorites', favoritesRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 app.get('/users/:id/image', async (req, res) => {
