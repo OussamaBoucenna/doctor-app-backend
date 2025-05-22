@@ -1,5 +1,6 @@
 const NotificationService = require('../service/Notification.service');
 
+
 // Get all notifications for the current patient user
 const getAllPatientNotifications = async (req, res) => {
   try {
@@ -51,6 +52,7 @@ const createNotification = async (req, res) => {
     }
     
     const notification = await NotificationService.createNotification(userId, { title, message });
+
     
     res.status(201).json({
       message: 'Notification created successfully',

@@ -360,7 +360,7 @@ const getAppointmentsOfDayByDoctorId = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Rendez-vous du jour récupérés avec succès',
-      nextAppointments: appointments
+      appointments: appointments
     });
   } catch (error) {
     console.error('Error getting appointments of the day:', error);
@@ -392,7 +392,7 @@ const getAppointmentsConfirmdOfDayByDoctorId = async (req, res) => {
     }
   try {
     const appointments = await appointmentService.getConfirmedAppointmentsByDoctorAndDay(doctorId,date);
-   console.log(appointments)
+  // console.log(appointments)
 
     return res.status(200).json({
       message: 'Appointments retrieved successfully',

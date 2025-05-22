@@ -1,5 +1,6 @@
 const Notification = require('../model/Notification.model');
 const User = require('../model/User.model');
+const { sendNotificationToUser } = require("./../utils/fcm");
 
 const getAllPatientNotifications = async (userId, patientId) => {
   try {
@@ -51,6 +52,9 @@ const createNotification = async (userId, notificationData) => {
       message: notificationData.message,
       is_read: false // Par défaut, les nouvelles notifications ne sont pas lues
     });
+
+      await sendNotificationToUser (userId, notificationData.title, notificationData.message);
+
     
     console.log('Notification created with ID:', notification.notification_id);
     

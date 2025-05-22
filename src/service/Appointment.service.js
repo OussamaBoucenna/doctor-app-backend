@@ -13,6 +13,7 @@ const QRCodeData = require('../model/qrCodeData.model');
 const Specialty = require('../model/Specialty.model');
 const calculateAge = require('../utils/calculateAge'); // Assuming you have a utility function to calculate age
 const { sendNotificationToUser } = require("./../utils/fcm");
+const notificationService = require("./Notification.service");
 
 
 const createAppointment = async (data, userId) => {
@@ -407,10 +408,64 @@ const cancelAppointment = async (appointmentId) => {
   appointment.is_book = false;
   await appointment.save();
 
+
+
+  
   await AppointmentSlot.update(
     { is_book: false },
     { where: { slot_id: appointment.slot_id } }
   );
+
+  
+  
+   
+  const apnt = await Appointment.findByPk(appointmentId, {
+  include: [
+    {
+      model: Patient,
+      as: 'PATIENT',
+      include: {
+        model: User,
+        as: 'USER',
+        attributes: ['user_id', 'first_name', 'last_name']
+      }
+    },
+    {
+      model: AppointmentSlot,
+      as: 'APPOINTMENT_SLOT',
+      include: {
+        model: DoctorSchedule,
+        as: 'DOCTOR_SCHEDULE',
+        include: {
+          model: Doctor,
+          as: 'DOCTOR',
+          include: {
+            model: User,
+            as: 'USER',
+            attributes: ['user_id']
+          }
+        }
+      }
+    }
+  ]
+});
+
+console.log("apnt ----------->", apnt.APPOINTMENT_SLOT.DOCTOR_SCHEDULE.DOCTOR.USER.user_id); ;
+
+ const notification = { 
+    title : "Appointment Canceled ",
+    message :  `Your appointment with the patient ${apnt.PATIENT.USER.first_name} ${apnt.PATIENT.USER.last_name} on ${apnt.APPOINTMENT_SLOT.working_date} at  ${apnt.APPOINTMENT_SLOT.start_time} -  ${appointment.APPOINTMENT_SLOT.end_time}  has been canceled`  ,
+    }
+  await notificationService.createNotification(apnt.APPOINTMENT_SLOT.DOCTOR_SCHEDULE.DOCTOR.USER.user_id,notification ) ;
+
+
+  
+ const notifications = { 
+    title : "Appointment Canceled ",
+    message :  `Your appointment with the Doctor ${apnt.APPOINTMENT_SLOT.DOCTOR_SCHEDULE.DOCTOR.USER.first_name} ${apnt.APPOINTMENT_SLOT.DOCTOR_SCHEDULE.DOCTOR.USER.last_name} on ${apnt.APPOINTMENT_SLOT.working_date} at  ${apnt.APPOINTMENT_SLOT.start_time} -  ${appointment.APPOINTMENT_SLOT.end_time}  has been canceled`  ,
+    }
+  await notificationService.createNotification(apnt.PATIENT.USER.user_id,notifications ) ;
+
 
   // Formaté comme demandé
   return {
@@ -456,9 +511,12 @@ const confirmAppointment = async (appointmentId) => {
 
   appointment.status = 'CONFIRMED';
   await appointment.save();
-
-  await sendNotificationToUser (appointment.PATIENT.USER.user_id, "Appointment Confirmation", "Your appointment has been confirmed.");
-
+  
+   const notification = { 
+    title : "Appointment Confirmation ",
+    message :  `Your appointment with the doctor on ${appointment.APPOINTMENT_SLOT.working_date} at  ${appointment.APPOINTMENT_SLOT.start_time} -  ${appointment.APPOINTMENT_SLOT.end_time}  has been confirmed`  ,
+    }
+  await notificationService.createNotification(appointment.PATIENT.USER.user_id,notification ) ;
 
   // Formaté comme demandé
   return {
@@ -614,8 +672,9 @@ const getPendingAppointmentsByDoctorAndDay = async (doctorId, dateString) => {
         [AppointmentSlot, 'start_time', 'ASC']
       ]
     });
-    
+     console.log("todaysAppointments ----------->", todaysAppointments);
     if (!todaysAppointments || todaysAppointments.length === 0) {
+      console.log("Aucun rendez-vous trouvé pour la date donnée.");
       return [];  // Retourner un tableau vide plutôt qu'une erreur
     }
     
