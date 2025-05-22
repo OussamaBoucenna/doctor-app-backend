@@ -2,7 +2,7 @@
 const appointmentService = require('../service/Appointment.service'); 
 const Appointment = require('../model/Appointment.model');
 const AppointmentSlot = require('../model/AppointmentSlot.model');
-const DoctorSchedule = require('../model/DoctorSchedule.model');
+const DoctorSchedule = require('../model/doctorSchedule.model');
 const Patient = require('../model/Patient.model');
 const User = require('../model/User.model');
 const { Op } = require('sequelize');
